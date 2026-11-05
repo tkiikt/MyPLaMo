@@ -75,6 +75,7 @@ sealed class Preferences
     public string Target {get;set;} = "ja";
     public string Source {get;set;} = "";
     public string Style {get;set;} = "";
+    public bool ChromeEnabled {get;set;}
     public bool GPU {get;set;} = true;
     public bool History {get;set;}
     public string Shortcut {get;set;} = "T";
@@ -95,3 +96,4 @@ sealed class Preferences
         File.Move(FileName+".tmp",FileName,true);
     }
 }
+

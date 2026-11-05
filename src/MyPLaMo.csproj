@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-<PropertyGroup><OutputType>WinExe</OutputType><TargetFramework>net10.0-windows</TargetFramework><UseWindowsForms>true</UseWindowsForms><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><ApplicationIcon>MyPLaMo.ico</ApplicationIcon><Version>1.0.1</Version><ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode></PropertyGroup>
-<ItemGroup><EmbeddedResource Include="catalog.json" /></ItemGroup>
+<PropertyGroup><OutputType>WinExe</OutputType><TargetFramework>net10.0-windows</TargetFramework><UseWindowsForms>true</UseWindowsForms><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><ApplicationIcon>MyPLaMo.ico</ApplicationIcon><Version>1.1.1</Version><ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode></PropertyGroup>
+<ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /><EmbeddedResource Include="catalog.json" /></ItemGroup>
 </Project>
+
+
 

@@ -1,7 +1,17 @@
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
-  <Package Name="MyPLaMo" Manufacturer="MyPLaMo" Version="1.0.1" Language="1041" UpgradeCode="4BAD4A08-D98B-4256-9D1F-C9280D67D45B" Scope="perUser" InstallerVersion="500">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <Package Name="MyPLaMo" Manufacturer="MyPLaMo" Version="1.1.1" Codepage="932" Language="1041" UpgradeCode="4BAD4A08-D98B-4256-9D1F-C9280D67D45B" Scope="perUser" InstallerVersion="500">
     <MajorUpgrade DowngradeErrorMessage="新しいバージョンがインストールされています。" />
     <MediaTemplate EmbedCab="yes" CompressionLevel="high"/>
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLDIR" />
+    <WixVariable Id="WixUILicenseRtf" Value="build/license-mit.rtf" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="MyPLaMoを起動する" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+    <CustomAction Id="LaunchMyPLaMo" Directory="INSTALLDIR"
+                  ExeCommand="&quot;[INSTALLDIR]MyPLaMo.exe&quot;" Return="asyncNoWait" Impersonate="yes" />
+    <UI>
+      <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchMyPLaMo"
+               Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed" Order="1" />
+    </UI>
     <StandardDirectory Id="LocalAppDataFolder">
       <Directory Id="ProgramsDir" Name="Programs"><Directory Id="INSTALLDIR" Name="MyPLaMo"/></Directory>
     </StandardDirectory>
@@ -19,3 +29,5 @@
     </Feature>
   </Package>
 </Wix>
+
+

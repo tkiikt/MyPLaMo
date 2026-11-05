@@ -16,7 +16,7 @@ try {
     curl.exe -fLs --retry 2 -o "$folder/engine/LICENSE-llama.cpp" "https://raw.githubusercontent.com/ggml-org/llama.cpp/$tag/LICENSE"
     dotnet publish src -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -o $folder
     $assets=Get-Content src/obj/project.assets.json -Raw |ConvertFrom-Json -AsHashtable
-    foreach($dep in $assets.project.frameworks.Values.downloadDependencies | Where-Object {$_.name -match '^Microsoft\.(WindowsDesktop|NETCore)\.App\.Runtime\.win-x64$'}){
+    foreach($dep in $assets.project.frameworks.Values.downloadDependencies | Where-Object {$_.name -match '^Microsoft\.(WindowsDesktop|NETCore|AspNetCore)\.App\.Runtime\.win-x64$'}){
         $ver=($dep.version.Trim('[',']') -split ',')[0].Trim()
         $lib=$dep.name+'/'+$ver
         $pkg=$lib.ToLowerInvariant()
@@ -25,9 +25,15 @@ try {
             Copy-Item $_.FullName (Join-Path "$folder/licenses" (($lib -replace '/','-')+'-'+$_.Name))
         }
     }
+    ./chrome/build.ps1
     Copy-Item README.md,LICENSE,LICENSE-MIT $folder
     if(!(Test-Path build/tools/wix.exe)){dotnet tool install wix --version 5.0.2 --tool-path build/tools}
-    build/tools/wix.exe build setup.wxs -arch x64 -intermediateFolder build/wix -pdb build/setup.wixpdb -o release/MyPLaMo-Setup-x64.msi
+    build/tools/wix.exe extension add WixToolset.UI.wixext/5.0.2
+    $mit=(Get-Content LICENSE-MIT) -join '\par '
+    [IO.File]::WriteAllText("$PWD/build/license-mit.rtf",'{\rtf1\ansi '+$mit+'}')
+    build/tools/wix.exe build setup.wxs -ext WixToolset.UI.wixext/5.0.2 -culture ja-JP -arch x64 -intermediateFolder build/wix -pdb build/setup.wixpdb -o release/MyPLaMo-Setup-x64.msi
     Compress-Archive -Force -Path $folder -DestinationPath release/MyPLaMo-x64.zip
 } finally {Pop-Location}
+
+
 

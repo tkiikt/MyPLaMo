@@ -12,6 +12,10 @@ sealed class MainWindow : Form
 {
     readonly Preferences prefs=Preferences.Load();
     readonly Engine engine=new();
+    readonly SemaphoreSlim engineGate = new(1);
+    readonly CheckBox chrome = new() { Text = "Chromeからの翻訳を受け付ける", AutoSize = true, Anchor = AnchorStyles.Left };
+    ChromeBridge? bridge;
+    bool syncingChrome;
     readonly NotifyIcon tray=new();
     readonly TextBox input=Editor(false),output=Editor(true);
     readonly ComboBox from=Ui.Combo(new[]{new Lang("","自動検出")}.Concat(Lang.List).ToArray()),
@@ -33,7 +37,7 @@ sealed class MainWindow : Form
         var root=Ui.Stack(20);Controls.Add(root);
         void Add(Control c,bool fill=false){root.RowStyles.Add(fill?new RowStyle(SizeType.Percent,100):new RowStyle(SizeType.AutoSize));root.Controls.Add(c);}
         var top=new TableLayoutPanel{Dock=DockStyle.Fill,AutoSize=true,ColumnCount=2};top.ColumnStyles.Add(new(SizeType.Percent,100));
-        top.Controls.Add(Ui.Label("MyPLaMo",22,true));top.Controls.Add(Ui.Row(log,settings));Add(top);
+        top.Controls.Add(Ui.Label("MyPLaMo",22,true));top.Controls.Add(Ui.Row(chrome,log,settings));Add(top);
         var panes=new TableLayoutPanel{ColumnCount=2,Dock=DockStyle.Fill};
         panes.ColumnStyles.Add(new(SizeType.Percent,50));panes.ColumnStyles.Add(new(SizeType.Percent,50));
         panes.RowStyles.Add(new(SizeType.AutoSize));panes.RowStyles.Add(new(SizeType.Percent,100));panes.RowStyles.Add(new(SizeType.AutoSize));
@@ -62,8 +66,9 @@ sealed class MainWindow : Form
         tray.Text="MyPLaMo";tray.Icon=Icon=Icon.ExtractAssociatedIcon(Environment.ProcessPath!)??SystemIcons.Application;tray.Visible=true;
         var menu=new ContextMenuStrip();menu.Items.Add("翻訳画面を開く",null,(_,_)=>Reveal());menu.Items.Add("終了",null,(_,_)=>{quitting=true;Close();});
         tray.ContextMenuStrip=menu;tray.DoubleClick+=(_,_)=>Reveal();
-        FormClosing+=(_,e)=>{if(e.CloseReason==CloseReason.UserClosing&&!quitting){e.Cancel=true;Hide();return;}job?.Cancel();engine.Dispose();tray.Dispose();};
-        Shown+=(_,_)=>{RefreshReady();if(prefs.Active==null)OpenSetup();else if(startHidden)Hide();};
+        FormClosing+=(_,e)=>{if(e.CloseReason==CloseReason.UserClosing&&!quitting){e.Cancel=true;Hide();return;}job?.Cancel();if(bridge!=null)_=bridge.DisposeAsync();engine.Dispose();tray.Dispose();};
+        chrome.CheckedChanged+=async(_,_)=>await ConfigureChrome();
+        Shown+=(_,_)=>{RefreshReady();chrome.Checked=prefs.ChromeEnabled;if(prefs.Active==null)OpenSetup();else if(startHidden)Hide();};
         try {if(File.Exists(LogPath))entries.AddRange(JsonSerializer.Deserialize<List<Entry>>(File.ReadAllText(LogPath))??[]);}catch(Exception e) when(e is IOException or JsonException){}
         foreach(var control in new Control[]{paste,clear,from,to,swap,style,log,settings}) busyControls.Add(control);
     }
@@ -71,7 +76,52 @@ sealed class MainWindow : Form
     static string Id(ComboBox b)=>((Lang)b.SelectedItem!).Id;
     static void SelectLang(ComboBox b,string id){b.SelectedItem=b.Items.Cast<Lang>().FirstOrDefault(l=>l.Id==id)??b.Items[0];}
     void Reveal(){Show();WindowState=FormWindowState.Normal;Activate();input.Focus();}
-    void OpenSetup(){if(job!=null||modal)return;modal=true;try{using var s=new Setup(prefs,engine);s.ShowDialog(this);}finally{modal=false;RefreshReady();}}
+    async void OpenSetup()
+    {
+        if(job!=null||modal)return;
+        modal=true;
+        await engineGate.WaitAsync();
+        try { using var s=new Setup(prefs,engine);s.ShowDialog(this); }
+        finally { engineGate.Release();modal=false;RefreshReady(); }
+    }
+
+    async Task ConfigureChrome()
+    {
+        if (syncingChrome) return;
+        syncingChrome = true;
+        chrome.Enabled = false;
+        try {
+            if (chrome.Checked) {
+                bridge = new ChromeBridge((source, ct) => InvokeAsync(
+                    token => new ValueTask<string>(TranslateForChrome(source, token)), ct));
+                await bridge.Start();
+            } else if (bridge != null) {
+                await bridge.DisposeAsync();
+                bridge = null;
+            }
+            prefs.ChromeEnabled = chrome.Checked;
+            prefs.Save();
+        } catch (Exception ex) {
+            if (bridge != null) await bridge.DisposeAsync();
+            bridge = null;
+            chrome.Checked = false;
+            prefs.ChromeEnabled = false;
+            status.Text = "Chrome連携を開始できませんでした。 " + ex.GetBaseException().Message;
+        } finally { syncingChrome = false; chrome.Enabled = true; }
+    }
+
+    async Task<string> TranslateForChrome(string source, CancellationToken ct)
+    {
+        await engineGate.WaitAsync(ct);
+        try {
+            ct.ThrowIfCancellationRequested();
+            var model = prefs.Active;
+            if (model == null || !prefs.LicenseAccepted)
+                throw new IOException("MyPLaMoの「モデルと設定」でモデルの準備を完了してください。");
+            await engine.Load(Path.Combine(prefs.Folder, model.file), prefs.GPU, new Progress<string>(), ct);
+            return await engine.Translate(source, "", "ja", prefs.Style, ct);
+        } finally { engineGate.Release(); }
+    }
     void RefreshReady()
     {
         UnregisterHotKey(Handle,44);
@@ -88,7 +138,9 @@ sealed class MainWindow : Form
         if(Id(from)==Id(to)){status.Text="翻訳元と翻訳先に異なる言語を選んでください。";return;}
         job=new();var progress=new Progress<string>(s=>status.Text=s);var source=input.Text;
         foreach(var c in busyControls)c.Enabled=false;input.ReadOnly=true;translate.Text="キャンセル";output.Clear();
+        await engineGate.WaitAsync();
         try{
+            job.Token.ThrowIfCancellationRequested();
             await engine.Load(Path.Combine(prefs.Folder,m.file),prefs.GPU,progress,job.Token);
             status.Text=$"{m.id.ToUpperInvariant()}　·　{engine.Device}　翻訳中…";
             output.Text=await engine.Translate(source,Id(from),Id(to),prefs.Style,job.Token);
@@ -98,7 +150,7 @@ sealed class MainWindow : Form
             if(prefs.History){entries.Insert(0,new(source,output.Text,Id(from),Id(to)));if(entries.Count>100)entries.RemoveRange(100,entries.Count-100);SaveLog();}
         }catch(OperationCanceledException){engine.Dispose();status.Text="翻訳をキャンセルしました。";}
         catch(Exception e){engine.Dispose();status.Text=e.Message;}
-        finally{job.Dispose();job=null;foreach(var c in busyControls)c.Enabled=true;style.Enabled=Id(to)=="ja";input.ReadOnly=false;translate.Text="翻訳する";}
+        finally{engineGate.Release();job.Dispose();job=null;foreach(var c in busyControls)c.Enabled=true;style.Enabled=Id(to)=="ja";input.ReadOnly=false;translate.Text="翻訳する";}
     }
     void SaveLog(){Directory.CreateDirectory(Preferences.Home);File.WriteAllText(LogPath+".tmp",JsonSerializer.Serialize(entries));File.Move(LogPath+".tmp",LogPath,true);}
     void ShowLog()
@@ -158,6 +210,7 @@ sealed class MainWindow : Form
         if(GetForegroundWindow()==origin)ClipboardAction(()=>{Clipboard.SetText(output.Text);SendKeys.SendWait("^v");});
     }
 }
+
 
 
 
