@@ -81,7 +81,7 @@ sealed class Setup : Form
             if(MessageBox.Show(this,path+" と対応する中断ファイルを削除しますか？","モデル削除",MessageBoxButtons.YesNo)!=DialogResult.Yes)return;
             try{engine.Dispose(); File.Delete(path);File.Delete(path+".part");Inspect();}catch(Exception ex){state.Text=ex.Message;}
         };
-        var license=new LinkLabel{Text="PFN 公式ライセンス（日本語）",AutoSize=true};
+        var license=new LinkLabel{Text="Built with PLaMo　·　PFN 公式ライセンス（日本語）",AutoSize=true};
         license.LinkClicked+=(_,_)=>Process.Start(new ProcessStartInfo("https://plamo.preferredai.jp/info/plamo-community-license-ja"){UseShellExecute=true});
         consent.Checked=p.LicenseAccepted;options.Controls.Add(license);options.Controls.Add(consent);
         options.Controls.Add(Ui.Label("操作と保存",12,true));

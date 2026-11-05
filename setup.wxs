@@ -1,5 +1,5 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
-  <Package Name="MyPLaMo" Manufacturer="MyPLaMo" Version="1.0.0" Language="1041" UpgradeCode="4BAD4A08-D98B-4256-9D1F-C9280D67D45B" Scope="perUser" InstallerVersion="500">
+  <Package Name="MyPLaMo" Manufacturer="MyPLaMo" Version="1.0.1" Language="1041" UpgradeCode="4BAD4A08-D98B-4256-9D1F-C9280D67D45B" Scope="perUser" InstallerVersion="500">
     <MajorUpgrade DowngradeErrorMessage="新しいバージョンがインストールされています。" />
     <MediaTemplate EmbedCab="yes" CompressionLevel="high"/>
     <StandardDirectory Id="LocalAppDataFolder">

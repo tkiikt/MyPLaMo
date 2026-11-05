@@ -25,7 +25,7 @@ try {
             Copy-Item $_.FullName (Join-Path "$folder/licenses" (($lib -replace '/','-')+'-'+$_.Name))
         }
     }
-    Copy-Item README.md $folder
+    Copy-Item README.md,LICENSE,LICENSE-MIT $folder
     if(!(Test-Path build/tools/wix.exe)){dotnet tool install wix --version 5.0.2 --tool-path build/tools}
     build/tools/wix.exe build setup.wxs -arch x64 -intermediateFolder build/wix -pdb build/setup.wixpdb -o release/MyPLaMo-Setup-x64.msi
     Compress-Archive -Force -Path $folder -DestinationPath release/MyPLaMo-x64.zip

@@ -2,6 +2,10 @@
 
 Windows 11 x64 用のローカル翻訳アプリです。PLaMo 3 Translate の公式 GGUF（Q4_K_M）を使います。
 
+Built with PLaMo
+
+**ダウンロード**　[Windows インストーラー](https://github.com/tkiikt/MyPLaMo/releases/latest/download/MyPLaMo-Setup-x64.msi) ・ [ポータブル ZIP](https://github.com/tkiikt/MyPLaMo/releases/latest/download/MyPLaMo-x64.zip)
+
 ## はじめに
 
 1. MyPLaMo-Setup-x64.msi を実行し、スタートメニューの「MyPLaMo」を開きます。ZIP 版はすべて展開して MyPLaMo.exe を起動します。
@@ -38,4 +42,10 @@ GB は10進表記です。推論にはファイルサイズに加え作業用メ
 ## ビルド
 
 Windows x64 と .NET 10 SDK で、プロジェクト直下から PowerShell 7 で ./build.ps1 を実行します。release に自己完結型の本体・ZIP・ユーザー単位の MSI を作成します。モデル本体は配布物に含めません。エンジンとランタイムのライセンス表示は配布フォルダに同梱しています。
+
+## ライセンス
+
+- **MyPLaMo の自作コードとドキュメント**には [MIT License](LICENSE-MIT) が適用されます。
+- **PLaMo 3 Translate モデル**には PFN の PLaMo Community License が適用されます。初回設定で利用条件を確認し、選んだモデルを PFN の公式配布元から取得します。個人・非商用利用、商用利用の登録・契約条件、第三者への提供時の表示義務については、[同梱の日本語規約全文（第4条を含む）](LICENSE)をご確認ください。[PFN 公式日本語規約](https://huggingface.co/pfnet/plamo-3-translate-2b-GGUF/blob/main/LICENSE/ja)
+- **同梱ソフトウェア**にはそれぞれのライセンスが適用されます。ZIP の展開先または MSI のインストール先の `engine` に llama.cpp と LLVM OpenMP のライセンス、`licenses` に .NET のライセンスと第三者表記があります。
 
