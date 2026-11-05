@@ -1,0 +1,21 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="MyPLaMo" Manufacturer="MyPLaMo" Version="1.0.0" Language="1041" UpgradeCode="4BAD4A08-D98B-4256-9D1F-C9280D67D45B" Scope="perUser" InstallerVersion="500">
+    <MajorUpgrade DowngradeErrorMessage="新しいバージョンがインストールされています。" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high"/>
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="ProgramsDir" Name="Programs"><Directory Id="INSTALLDIR" Name="MyPLaMo"/></Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="StartupFolder"/>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Component Id="StartLink" Guid="D86F0E1F-D15A-44D2-82E1-216DF2178040">
+        <Shortcut Id="MenuLink" Name="MyPLaMo" Target="[INSTALLDIR]MyPLaMo.exe" WorkingDirectory="INSTALLDIR"/>
+        <RegistryValue Root="HKCU" Key="Software\MyPLaMo\Setup" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+        <RemoveFile Id="StartupLink" Directory="StartupFolder" Name="MyPLaMo.lnk" On="uninstall"/>
+      </Component>
+    </StandardDirectory>
+    <Feature Id="App" Title="MyPLaMo">
+      <Files Directory="INSTALLDIR" Include="release\MyPLaMo\**"/>
+      <ComponentRef Id="StartLink"/>
+    </Feature>
+  </Package>
+</Wix>

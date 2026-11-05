@@ -1,0 +1,11 @@
+/build/
+/engine/
+/models/
+/release/
+**/bin/
+**/obj/
+.vs/
+__pycache__/
+*.gguf
+*.part
+*.user
