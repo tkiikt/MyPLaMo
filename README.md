@@ -4,6 +4,8 @@ Windows 11 x64 用のローカル翻訳アプリです。PLaMo 3 Translate の�
 
 Built with PLaMo
 
+PFN様のライセンスを侵害しない限り、ご自身で自由に改変して利用していただいて構いません。
+
 **ダウンロード**　[Windows インストーラー](https://github.com/tkiikt/MyPLaMo/releases/latest/download/MyPLaMo-Setup-x64.msi) ・ [ポータブル ZIP](https://github.com/tkiikt/MyPLaMo/releases/latest/download/MyPLaMo-x64.zip)
 
 ## はじめに
