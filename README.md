@@ -37,6 +37,8 @@ GB は10進表記です。推論にはファイルサイズに加え作業用メ
 
 Chrome拡張「MyPLaMo ページ翻訳」は、MyPLaMo 1.1.0 以降のオプションです。本体で選んだモデルを使い、ページの文章をPC内で日本語に翻訳します。
 
+**ダウンロード**　[MyPLaMo-Web.zip](https://github.com/tkiikt/MyPLaMo/releases/download/v1.1.1/MyPLaMo-Web.zip)
+
 **初回設定**
 
 1. MyPLaMo を起動し、画面上部の「Chromeからの翻訳を受け付ける」をオンにします。翻訳中は本体を起動しておいてください。通知領域にしまった状態でも使えます。
