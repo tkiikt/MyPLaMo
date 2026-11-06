@@ -27,7 +27,7 @@ test('keeps the published extension identity for Windows and Mac', () => {
 test('same wire protocol resolves both Windows and Mac replies and closes socket', async () => {
   const f = fixture(), result = f.bridgeRequest({text: 'Hello'}), s = f.sockets[0];
   assert.equal(s.url, 'ws://127.0.0.1:47832/translate');
-  s.onopen(); assert.deepEqual(s.sent, {text:'Hello'});
+  s.onopen(); assert.deepEqual(s.sent, {text:'Hello', protocolVersion:1});
   s.onmessage({data:JSON.stringify({working:true})});
   assert.equal(s.closed, undefined);
   s.onmessage({data:JSON.stringify({translation:'こんにちは'})});
@@ -54,4 +54,21 @@ test('length bounds and timeout do not hang service worker', async () => {
   assert.equal(f.sockets.length,0);
   const result = f.bridgeRequest({text:'a'.repeat(2000)});
   f.timers.get(1)(); await assert.rejects(result, /タイムアウト/); assert.equal(f.sockets[0].closed,true);
+});
+
+test('identifies Mac and Windows and preserves legacy translation', async () => {
+  for (const platform of ['macos', 'windows', null]) {
+    const f = fixture(), result = f.bridgeRequest({text:'Hello'});
+    const reply = {translation:'こんにちは'};
+    if (platform) reply.server = {platform, appVersion:'0.2.1', protocolVersion:1};
+    f.sockets[0].onmessage({data:JSON.stringify(reply)});
+    assert.match((await result).connectionLabel, platform === 'macos' ? /MyPLaMo for Mac v0.2.1/ : platform === 'windows' ? /Windows.*v0.2.1/ : /バージョン未確認/);
+  }
+});
+test('rejects incompatible and malformed server metadata', async () => {
+  for (const server of [null, {platform:'macos',appVersion:'0.2.1',protocolVersion:2}, {platform:'other',appVersion:'0.2.1',protocolVersion:1}, {platform:'macos',appVersion:'<bad>',protocolVersion:1}]) {
+    const f = fixture(), result = f.bridgeRequest({text:'Hello'});
+    f.sockets[0].onmessage({data:JSON.stringify({server,translation:'unused'})});
+    await assert.rejects(result); assert.equal(f.sockets[0].closed,true);
+  }
 });

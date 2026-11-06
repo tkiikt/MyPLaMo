@@ -48,6 +48,9 @@ sealed class ChromeBridge(Func<string, CancellationToken, Task<string>> translat
         object response;
         try {
             using var data = JsonDocument.Parse(buffer.AsMemory(0, count));
+            if (data.RootElement.TryGetProperty("protocolVersion", out var protocol) &&
+                (!protocol.TryGetInt32(out var version) || version != 1))
+                throw new ArgumentException("本体と拡張機能の通信バージョンが対応していません。両方を更新してください。");
             var source = data.RootElement.GetProperty("text").GetString();
             if (string.IsNullOrWhiteSpace(source) || source.Length > 2000)
                 throw new ArgumentException("文章を短くしてください。");
@@ -64,7 +67,15 @@ sealed class ChromeBridge(Func<string, CancellationToken, Task<string>> translat
     }
 
     static Task Send(WebSocket socket, object message, CancellationToken ct) =>
-        socket.SendAsync(new ArraySegment<byte>(JsonSerializer.SerializeToUtf8Bytes(message)), WebSocketMessageType.Text, true, ct);
+        socket.SendAsync(new ArraySegment<byte>(JsonSerializer.SerializeToUtf8Bytes(WithServerInfo(message))), WebSocketMessageType.Text, true, ct);
+
+    static Dictionary<string, object?> WithServerInfo(object message)
+    {
+        var fields = JsonSerializer.Deserialize<Dictionary<string, object?>>(JsonSerializer.Serialize(message))!;
+        var version = typeof(ChromeBridge).Assembly.GetName().Version;
+        fields["server"] = new { platform = "windows", appVersion = $"{version?.Major ?? 0}.{version?.Minor ?? 0}.{version?.Build ?? 0}", protocolVersion = 1 };
+        return fields;
+    }
 
     public async ValueTask DisposeAsync()
     {

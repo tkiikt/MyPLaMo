@@ -18,11 +18,23 @@ function bridgeRequest(message) {
       if (error) reject(error); else resolve(reply);
     }
     const failed = () => finish(new Error("MyPLaMo（Windows）またはMyPLaMo for Macを起動し、「Chromeからの翻訳を受け付ける」をオンにしてから再試行してください。"));
-    socket.onopen = () => socket.send(JSON.stringify({text: message.text}));
+    socket.onopen = () => socket.send(JSON.stringify({text: message.text, protocolVersion: 1}));
     socket.onmessage = event => {
       try {
         const reply = JSON.parse(event.data);
+        if (reply.server !== undefined) {
+          const server = reply.server;
+          if (!server || server.protocolVersion !== 1) {
+            finish(new Error("本体と拡張機能の通信バージョンが対応していません。両方を更新してください。")); return;
+          }
+          if (!["macos", "windows"].includes(server.platform) || typeof server.appVersion !== "string" || !/^\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?$/.test(server.appVersion)) {
+            finish(new Error("本体の接続情報を確認できません。本体を更新してください。")); return;
+          }
+        }
         if (reply.working === true) return;
+        reply.connectionLabel = reply.server
+          ? (reply.server.platform === "macos" ? "MyPLaMo for Mac" : "MyPLaMo（Windows）") + " v" + reply.server.appVersion + "に接続中"
+          : "MyPLaMoに接続中（本体情報非対応の旧版・バージョン未確認）";
         if (typeof reply.error === "string") finish(new Error(reply.error));
         else if (typeof reply.translation === "string" && reply.translation.length) finish(null, reply);
         else finish(new Error("翻訳エンジンから正しい応答を受信できませんでした。"));
