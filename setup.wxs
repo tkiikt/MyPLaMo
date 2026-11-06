@@ -1,6 +1,13 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
-  <Package Name="MyPLaMo" Manufacturer="MyPLaMo" Version="1.1.1" Codepage="932" Language="1041" UpgradeCode="4BAD4A08-D98B-4256-9D1F-C9280D67D45B" Scope="perUser" InstallerVersion="500">
+  <Package Name="MyPLaMo" Manufacturer="MyPLaMo" Version="1.1.2" Codepage="932" Language="1041" UpgradeCode="4BAD4A08-D98B-4256-9D1F-C9280D67D45B" Scope="perUser" InstallerVersion="500">
     <MajorUpgrade DowngradeErrorMessage="新しいバージョンがインストールされています。" />
+    <!-- This is the EXE component GUID used by the released 1.1.1 MSI.
+         With no FileSearch child, Windows Installer returns its parent folder.
+         Keep it stable so upgrades also find custom installation locations. -->
+    <Property Id="INSTALLDIR" Secure="yes">
+      <ComponentSearch Id="ExistingInstallDirectory" Guid="1441DE5D-259C-53C7-88E5-B06933F7E674" Type="file" />
+    </Property>
+    <SetProperty Id="ARPINSTALLLOCATION" Value="[INSTALLDIR]" After="CostFinalize" />
     <MediaTemplate EmbedCab="yes" CompressionLevel="high"/>
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLDIR" />
     <WixVariable Id="WixUILicenseRtf" Value="build/license-mit.rtf" />
