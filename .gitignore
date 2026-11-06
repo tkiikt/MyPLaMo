@@ -10,3 +10,6 @@ __pycache__/
 *.part
 *.user
 /.wix/
+
+/dist/
+node_modules/
