@@ -15,13 +15,13 @@
     "scripting",
     "contextMenus"
   ],
-  "description": "Windows版MyPLaMo / MyPLaMo for Macと連携し、ページ全体を日本語に翻訳。もう一度クリックすると原文に戻ります。Built with PLaMo",
+  "description": "Windows版MyPLaMo / MyPLaMo for Macで、選択文をポップアップ翻訳・コピー。ページ全体の日本語翻訳にも対応。Built with PLaMo",
   "background": {
     "service_worker": "worker.js"
   },
   "name": "MyPLaMo ページ翻訳",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzuY/p4vBQKLCCsQeC8rWRlM6hct7llpe85GhlBV3rOdVXZHXaedCgDBgtKpJyehZgr8fW3HWqRqbl7cNxQyjgNNNbWBfNaV0LgUHlkCnnpCjrmmLzlplpqUCnQYHo8Aon0jUJZHCm66yiZX41Q+LANOrclukdO6Djh4TRv4VtsOc+UrZ3L6hf6Vbap80ASHq6EcFtTJL8LHEYBiNUzHEtW9q2h9v8KhMhiKc6MMUw/9g3ZukxHj2iTzAixSDSw3hXgY8vcuatGn+MgdF/ure2MFn1F3ORWu4UxV7EPlDmLSFmfgX546xfw5QsZe3HfUXisu6gL/m/EYyw+BHmicwQQIDAQAB",
-  "version": "2.1.3",
+  "version": "2.2.0",
   "commands": {
     "_execute_action": {
       "suggested_key": {
@@ -38,5 +38,17 @@
     "64": "icons/myplamo-64.png",
     "128": "icons/myplamo-128.png",
     "256": "icons/myplamo-256.png"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "selection.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
 }
