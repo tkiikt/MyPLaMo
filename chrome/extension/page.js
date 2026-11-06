@@ -4,6 +4,7 @@
   let busy = false;
   let count = 0;
   let interrupted = false;
+  let connectionLabel = "";
   const queue = new Set();
   const originals = new WeakMap();
   const cache = new Map();
@@ -14,7 +15,7 @@
   shadow.innerHTML = '<style>section{display:flex;gap:12px;align-items:center;background:#183331;color:white;padding:10px 14px;border-radius:12px;box-shadow:0 2px 14px #0004;font:14px system-ui;max-width:min(480px,85vw)}button{font:inherit;color:#173832;background:#e2f4ef;border:0;border-radius:6px;padding:5px 9px;white-space:nowrap;cursor:pointer}</style><section><span role="status"></span><button>原文に戻す</button></section>';
   document.documentElement.append(panel);
   const label = shadow.querySelector("span");
-  const say = message => { label.textContent = message; };
+  const say = message => { label.textContent = connectionLabel ? connectionLabel + "\n" + message : message; label.style.whiteSpace = "pre-line"; };
   say("MyPLaMo　翻訳を準備中…");
 
   function eligible(node) {
@@ -49,6 +50,7 @@
     if (!cache.has(source)) {
       const reply = await chrome.runtime.sendMessage({text: source});
       if (reply?.error || !reply?.translation) throw new Error(reply?.error || "翻訳エンジンが応答しませんでした。");
+      connectionLabel = reply.connectionLabel || "";
       if (cache.size >= 1500) cache.delete(cache.keys().next().value);
       cache.set(source, reply.translation);
     }
