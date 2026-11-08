@@ -1,0 +1,39 @@
+<ContentDialog x:Class="MyPLaMo.SettingsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="設定" PrimaryButtonText="保存" CloseButtonText="キャンセル"
+    DefaultButton="Primary" PrimaryButtonClick="Save_Click"
+    AutomationProperties.AutomationId="SettingsDialog">
+    <ScrollViewer MaxHeight="500" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="20" MinWidth="360" Padding="0,0,6,0">
+            <StackPanel Spacing="10">
+                <TextBlock Text="翻訳" FontWeight="SemiBold" />
+                <Grid ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <TextBlock Text="GPUを優先する（Vulkan）" VerticalAlignment="Center" />
+                    <ToggleSwitch x:Name="GpuToggle" AutomationProperties.AutomationId="GpuToggle" AutomationProperties.Name="GPUを優先する" Grid.Column="1" OnContent="" OffContent="" MinWidth="44" />
+                </Grid>
+                <NumberBox x:Name="InputLimit" AutomationProperties.AutomationId="InputLimit" Header="入力上限（文字）" Minimum="100" Maximum="4000" SmallChange="100" SpinButtonPlacementMode="Compact" />
+            </StackPanel>
+            <StackPanel Spacing="10">
+                <TextBlock Text="操作と保存" FontWeight="SemiBold" />
+                <ComboBox x:Name="ShortcutCombo" AutomationProperties.AutomationId="ShortcutCombo" Header="呼び出しショートカット：Ctrl + Alt +" HorizontalAlignment="Stretch"><x:String>T</x:String><x:String>Y</x:String><x:String>J</x:String><x:String>無効</x:String></ComboBox>
+                <Grid ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <TextBlock Text="翻訳履歴をこのPCに保存（最新100件）" VerticalAlignment="Center" />
+                    <ToggleSwitch x:Name="HistoryToggle" AutomationProperties.AutomationId="HistoryToggle" AutomationProperties.Name="翻訳履歴をこのPCに保存" Grid.Column="1" OnContent="" OffContent="" MinWidth="44" />
+                </Grid>
+                <Grid ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <TextBlock Text="サインイン時に通知領域へ常駐" VerticalAlignment="Center" />
+                    <ToggleSwitch x:Name="StartupToggle" AutomationProperties.AutomationId="StartupToggle" AutomationProperties.Name="サインイン時に常駐" Grid.Column="1" OnContent="" OffContent="" MinWidth="44" />
+                </Grid>
+            </StackPanel>
+            <StackPanel Spacing="10">
+                <TextBlock Text="表示" FontWeight="SemiBold" />
+                <Grid ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <TextBlock Text="ダークテーマ" VerticalAlignment="Center" />
+                    <ToggleSwitch x:Name="DarkToggle" AutomationProperties.AutomationId="DarkToggle" AutomationProperties.Name="ダークテーマ" Grid.Column="1" OnContent="" OffContent="" MinWidth="44" />
+                </Grid>
+            </StackPanel>
+            <TextBlock x:Name="SaveStatus" AutomationProperties.AutomationId="SettingsSaveStatus" FontSize="12" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

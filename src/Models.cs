@@ -6,10 +6,11 @@ using System.Text.Json;
 
 namespace MyPLaMo;
 
-record Model(string id,string file,long bytes,string sha,string url)
+record Model(string id,string file,long bytes,string sha,string url,string[]? legacyShas = null)
 {
     public static Model[] All { get; } = JsonSerializer.Deserialize<Model[]>(typeof(Model).Assembly.GetManifestResourceStream("MyPLaMo.catalog.json")!)!;
     public override string ToString() => $"{id.ToUpperInvariant()}　·　{bytes / 1e9:0.00} GB";
+    public bool AcceptsHash(string hash) => hash.Equals(sha,StringComparison.OrdinalIgnoreCase) || (legacyShas?.Contains(hash,StringComparer.OrdinalIgnoreCase) ?? false);
     public async Task Prepare(string folder, IProgress<string> progress, CancellationToken ct)
     {
         if (!Path.IsPathFullyQualified(folder)) throw new IOException("保存先を絶対パスで指定してください。");
@@ -57,7 +58,7 @@ record Model(string id,string file,long bytes,string sha,string url)
         var path = existing ? dest : part;
         string hash;
         await using(var stream=File.OpenRead(path)) hash=Convert.ToHexString(await SHA256.HashDataAsync(stream,ct));
-        if(!hash.Equals(sha,StringComparison.OrdinalIgnoreCase))
+        if(!AcceptsHash(hash))
         {
             if(!existing) File.Delete(part);
             throw new IOException(existing ? "既存ファイルの検証に失敗しました。別の保存先を選ぶか、破損ファイルを移動してください。" : "検証に失敗しました。再取得してください。");

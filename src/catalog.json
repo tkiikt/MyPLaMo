@@ -2,29 +2,33 @@
   {
     "id": "0.8b",
     "file": "plamo-3-translate-0.8b-Q4_K_M.gguf",
-    "bytes": 573116288,
-    "sha": "3dbb09295bfd3350231ba0dba92bc72cb14111ef1b034e37dad39d581bd86b9c",
-    "url": "https://huggingface.co/pfnet/plamo-3-translate-0.8b-GGUF/resolve/03891e907db8a43c97d3a7c75add125cc6d1f96a/plamo-3-translate-0.8b-Q4_K_M.gguf"
+    "bytes": 573126848,
+    "sha": "70891ec70dc7ab4205745a38307867c2881b99239f20327927633abfe4bc9ec6",
+    "legacyShas": ["3dbb09295bfd3350231ba0dba92bc72cb14111ef1b034e37dad39d581bd86b9c"],
+    "url": "https://huggingface.co/pfnet/plamo-3-translate-0.8b-GGUF/resolve/e10c327b7a7ce84ffc427cb4b09360b781429fda/plamo-3-translate-0.8b-Q4_K_M.gguf"
   },
   {
     "id": "2b",
     "file": "plamo-3-translate-2b-Q4_K_M.gguf",
-    "bytes": 1807192480,
-    "sha": "2c288ecc7ebfe60c3561726580da3583767f3c41ca3ef5c6825bf6c4cc060787",
-    "url": "https://huggingface.co/pfnet/plamo-3-translate-2b-GGUF/resolve/f2b4599dff9b3e45c62567eac15e83186b4cb64e/plamo-3-translate-2b-Q4_K_M.gguf"
+    "bytes": 1807203040,
+    "sha": "1ffd9073afcc70e35ccc942428aa2b73d7aa2b9ea779bf504b775369e0276c13",
+    "legacyShas": ["2c288ecc7ebfe60c3561726580da3583767f3c41ca3ef5c6825bf6c4cc060787"],
+    "url": "https://huggingface.co/pfnet/plamo-3-translate-2b-GGUF/resolve/228a27cc0bb4f111219963848d50a3127c16ca73/plamo-3-translate-2b-Q4_K_M.gguf"
   },
   {
     "id": "8b",
     "file": "plamo-3-translate-8b-Q4_K_M.gguf",
-    "bytes": 5280435168,
-    "sha": "6b429549113ce0a61281ac72be195697241f89266f4247efec4893e4f580cf10",
-    "url": "https://huggingface.co/pfnet/plamo-3-translate-8b-GGUF/resolve/c420296e9694ccb2455f038b3f29eee5a2200217/plamo-3-translate-8b-Q4_K_M.gguf"
+    "bytes": 5280445728,
+    "sha": "94e5d3f91b421f7c8900ddaac27b11a19f7441426c954bbb25a2fd60a1640187",
+    "legacyShas": ["6b429549113ce0a61281ac72be195697241f89266f4247efec4893e4f580cf10"],
+    "url": "https://huggingface.co/pfnet/plamo-3-translate-8b-GGUF/resolve/fccc6b15efc7d615189fa5df6a1a02ecd2dbc18f/plamo-3-translate-8b-Q4_K_M.gguf"
   },
   {
     "id": "31b",
     "file": "plamo-3-translate-31b-Q4_K_M.gguf",
-    "bytes": 19526583392,
-    "sha": "d1ed08149f888ef7a0da38e26bf394a13d0f079b592229c8778f5f1a91cf6457",
-    "url": "https://huggingface.co/pfnet/plamo-3-translate-31b-GGUF/resolve/d0df961b923db3ff9fc325f4410d6f09005afcd6/plamo-3-translate-31b-Q4_K_M.gguf"
+    "bytes": 19526593952,
+    "sha": "47788c3eb71b830919a8454022381de943a43edfab65dad9e742997028d1f9df",
+    "legacyShas": ["d1ed08149f888ef7a0da38e26bf394a13d0f079b592229c8778f5f1a91cf6457"],
+    "url": "https://huggingface.co/pfnet/plamo-3-translate-31b-GGUF/resolve/8aa0d99cd886de5c7efb1d9418ce56562f54946a/plamo-3-translate-31b-Q4_K_M.gguf"
   }
 ]

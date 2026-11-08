@@ -1,0 +1,86 @@
+<Window x:Class="MyPLaMo.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Window.SystemBackdrop><MicaBackdrop /></Window.SystemBackdrop>
+    <Grid x:Name="Root" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Padding="28,24" RowSpacing="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+            <RowDefinition Height="*" /><RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid ColumnSpacing="20">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
+                <Image Source="Logo.png" Width="42" Height="42" />
+                <StackPanel Spacing="3">
+                    <TextBlock Text="MyPLaMo" FontSize="26" FontWeight="SemiBold" />
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE72E;" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBlock Text="このPCだけで翻訳" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <Button x:Name="HistoryButton" AutomationProperties.AutomationId="HistoryButton" Click="History_Click" Content="履歴" />
+                <Button x:Name="ModelsButton" AutomationProperties.AutomationId="ModelsButton" AutomationProperties.Name="モデル" Click="Models_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon Glyph="&#xEDA2;" FontSize="16" /><TextBlock Text="モデル" /></StackPanel>
+                </Button>
+                <Button x:Name="SettingsButton" AutomationProperties.AutomationId="SettingsButton" AutomationProperties.Name="設定" ToolTipService.ToolTip="設定" Click="Settings_Click">
+                    <FontIcon Glyph="&#xE713;" FontSize="18" />
+                </Button>
+            </StackPanel>
+        </Grid>
+        <Grid Grid.Row="1" ColumnSpacing="20">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <CheckBox x:Name="ChromeToggle" AutomationProperties.AutomationId="ChromeToggle" Content="Chromeからの翻訳を受け付ける" Checked="Chrome_Changed" Unchecked="Chrome_Changed" />
+            <TextBlock Grid.Column="1" Text="Built with PLaMo" VerticalAlignment="Center" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+        </Grid>
+        <Grid Grid.Row="2" ColumnSpacing="16" RowSpacing="12">
+            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <ComboBox x:Name="FromLanguage" AutomationProperties.AutomationId="FromLanguage" AutomationProperties.Name="翻訳元" MinWidth="160" SelectionChanged="Language_Changed" />
+                <Button x:Name="SwapButton" AutomationProperties.AutomationId="SwapButton" Content="⇄" AutomationProperties.Name="言語と文章を入れ替え" ToolTipService.ToolTip="言語と文章を入れ替え" Click="Swap_Click" />
+            </StackPanel>
+            <Grid Grid.Column="1" ColumnSpacing="10">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <ComboBox x:Name="ToLanguage" AutomationProperties.AutomationId="ToLanguage" AutomationProperties.Name="翻訳先" MinWidth="160" HorizontalAlignment="Stretch" SelectionChanged="Language_Changed" />
+                <ComboBox x:Name="TranslationStyle" AutomationProperties.AutomationId="TranslationStyle" AutomationProperties.Name="日本語の文体" Grid.Column="1" Width="92" SelectionChanged="Language_Changed"><x:String>標準</x:String><x:String>敬体</x:String><x:String>常体</x:String></ComboBox>
+            </Grid>
+            <Border Grid.Row="1" Style="{StaticResource CardStyle}" Padding="16">
+                <Grid RowSpacing="12">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                    <Grid>
+                        <TextBlock Text="原文" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
+                            <Button x:Name="PasteButton" AutomationProperties.AutomationId="PasteButton" Content="貼り付け" Click="Paste_Click" />
+                            <Button x:Name="ClearButton" AutomationProperties.AutomationId="ClearButton" Content="クリア" Click="Clear_Click" />
+                        </StackPanel>
+                    </Grid>
+                    <TextBox x:Name="InputText" AutomationProperties.AutomationId="InputText" AutomationProperties.Name="原文" Grid.Row="1" AcceptsReturn="True" TextWrapping="Wrap" FontSize="17" BorderThickness="0" Background="Transparent" PlaceholderText="翻訳したい文章を入力…" VerticalAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Auto" TextChanged="Input_Changed" />
+                    <TextBlock x:Name="CountText" AutomationProperties.AutomationId="CountText" Grid.Row="2" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </Grid>
+            </Border>
+            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardStyle}" Padding="16">
+                <Grid RowSpacing="12">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                    <Grid>
+                        <TextBlock Text="訳文" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <Button AutomationProperties.AutomationId="CopyButton" Content="コピー" HorizontalAlignment="Right" Click="Copy_Click" />
+                    </Grid>
+                    <TextBox x:Name="OutputText" AutomationProperties.AutomationId="OutputText" AutomationProperties.Name="訳文" Grid.Row="1" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" FontSize="17" BorderThickness="0" Background="Transparent" PlaceholderText="翻訳結果" VerticalAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                    <Button x:Name="InsertButton" AutomationProperties.AutomationId="InsertButton" Grid.Row="2" Content="元のアプリに挿入" Visibility="Collapsed" Click="Insert_Click" />
+                </Grid>
+            </Border>
+        </Grid>
+        <Grid Grid.Row="3" ColumnSpacing="24">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <StackPanel VerticalAlignment="Center" Spacing="5">
+                <TextBlock x:Name="ModelText" AutomationProperties.AutomationId="ModelText" FontWeight="SemiBold" />
+                <TextBlock x:Name="StatusText" AutomationProperties.AutomationId="StatusText" TextWrapping="Wrap" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+            <Button x:Name="TranslateButton" AutomationProperties.AutomationId="TranslateButton" AutomationProperties.Name="翻訳する" Grid.Column="1" Style="{StaticResource AccentButtonStyle}" MinWidth="150" MinHeight="44" Click="Translate_Click" ToolTipService.ToolTip="Ctrl + Enter">
+                <StackPanel Orientation="Horizontal" Spacing="10"><FontIcon Glyph="&#xE72A;" FontSize="16" /><TextBlock x:Name="TranslateLabel" Text="翻訳する" /></StackPanel>
+            </Button>
+        </Grid>
+    </Grid>
+</Window>
