@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0-windows</TargetFramework><OutputType>Exe</OutputType><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><RootNamespace>MyPLaMo</RootNamespace><EnableDefaultCompileItems>false</EnableDefaultCompileItems></PropertyGroup>
+  <ItemGroup><Compile Include="StorageProgram.cs;../../src/Models.cs;../../src/ModelMove.cs" /><EmbeddedResource Include="../../src/catalog.json" Link="catalog.json" /></ItemGroup>
+</Project>

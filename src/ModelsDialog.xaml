@@ -1,0 +1,60 @@
+<ContentDialog x:Class="MyPLaMo.ModelsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MyPLaMo" x:DefaultBindMode="OneWay"
+    AutomationProperties.AutomationId="ModelsDialog" Closing="Dialog_Closing">
+    <Grid x:Name="DialogLayout" RowSpacing="16">
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <Grid ColumnSpacing="20">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <TextBlock Text="翻訳モデル · GGUF" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center" />
+            <Button x:Name="DoneButton" AutomationProperties.AutomationId="ModelsDoneButton" Grid.Column="1" Content="完了" Click="Done_Click" />
+        </Grid>
+        <ScrollViewer x:Name="BodyScroll" Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="12" Padding="0,0,4,0">
+                <TextBlock Text="PLaMo 3 Translate の公式 GGUF・Q4_K_M、4サイズから選べます。まずは2Bがおすすめです。モデル取得後はオフラインで翻訳できます。" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <Grid>
+                    <TextBlock x:Name="MemoryText" AutomationProperties.AutomationId="MemoryText" VerticalAlignment="Center" FontSize="12" />
+                    <Button x:Name="RefreshButton" AutomationProperties.AutomationId="RefreshModelsButton" Content="情報を更新" HorizontalAlignment="Right" Click="Refresh_Click" />
+                </Grid>
+                <ItemsControl ItemsSource="{x:Bind Cards, Mode=OneTime}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="local:ModelCardViewModel">
+                            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,8" Padding="16,12">
+                                <Grid ColumnSpacing="16">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="28" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <FontIcon Glyph="{x:Bind Glyph, Mode=OneWay}" FontSize="24" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                    <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind Title}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                        <TextBlock Text="{x:Bind Note}" Visibility="{x:Bind NoteVisibility}" FontSize="12" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        <TextBlock Text="{x:Bind SizeText}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </StackPanel>
+                                    <Button Grid.Column="2" Content="{x:Bind ActionLabel, Mode=OneWay}" Tag="{x:Bind Id}" AutomationProperties.AutomationId="{x:Bind ActionId}" AutomationProperties.Name="{x:Bind ActionName, Mode=OneWay}" IsEnabled="{x:Bind CanActivate, Mode=OneWay}" MinWidth="118" VerticalAlignment="Center" Click="ModelAction_Click" />
+                                    <Button Grid.Column="3" Tag="{x:Bind Id}" AutomationProperties.AutomationId="{x:Bind DeleteId}" AutomationProperties.Name="{x:Bind DeleteName}" IsEnabled="{x:Bind CanDelete, Mode=OneWay}" VerticalAlignment="Center" ToolTipService.ToolTip="モデルを削除" Click="Delete_Click"><FontIcon Glyph="&#xE74D;" FontSize="16" /></Button>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <StackPanel x:Name="FolderControls" Spacing="8">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="24" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8B7;" FontSize="18" />
+                        <TextBlock x:Name="FolderText" Grid.Column="1" AutomationProperties.AutomationId="ModelFolderText" AutomationProperties.Name="モデルの保存先" TextWrapping="Wrap" FontSize="12" IsTextSelectionEnabled="True" VerticalAlignment="Center" />
+                        <Button x:Name="ChooseFolderButton" Grid.Column="2" AutomationProperties.AutomationId="ChooseModelFolderButton" Content="保存先を選択…" Click="ChooseFolder_Click" />
+                        <Button x:Name="MoveButton" Grid.Column="3" AutomationProperties.AutomationId="MoveModelsButton" Content="モデルを移動…" Click="Move_Click" />
+                    </Grid>
+                    <TextBlock Text="保存先を選ぶと既存モデルを検出します。移動では保存済みモデルを新しいフォルダーへ移し、SHA-256で検証します。" TextWrapping="Wrap" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+                <StackPanel Spacing="8">
+                    <HyperlinkButton AutomationProperties.AutomationId="ModelLicenseLink" Content="PLaMo Community Licenseを読む" NavigateUri="https://plamo.preferredai.jp/info/plamo-community-license-ja" Padding="0" />
+                    <CheckBox x:Name="ConsentCheck" AutomationProperties.AutomationId="LicenseConsentCheck" Content="ライセンスを確認し、利用条件に同意しました" Checked="Consent_Changed" Unchecked="Consent_Changed" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+        <StackPanel Grid.Row="2" Spacing="8">
+            <ProgressBar x:Name="OperationProgress" IsIndeterminate="True" Visibility="Collapsed" />
+            <TextBlock x:Name="OperationStatus" AutomationProperties.AutomationId="ModelOperationStatus" TextWrapping="Wrap" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="使用するモデルを選んでください。" />
+        </StackPanel>
+    </Grid>
+</ContentDialog>

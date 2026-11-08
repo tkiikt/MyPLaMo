@@ -20,7 +20,7 @@ static class ModelMove
             progress.Report("コピーしたモデルを検証中…");
             await using(var input=File.OpenRead(temp)){
                 var hash=Convert.ToHexString(await System.Security.Cryptography.SHA256.HashDataAsync(input,ct));
-                if(!hash.Equals(model.sha,StringComparison.OrdinalIgnoreCase))throw new IOException("検証に失敗しました。元のモデルを保持しました。");
+                if(!model.AcceptsHash(hash))throw new IOException("検証に失敗しました。元のモデルを保持しました。");
             }
             File.Move(temp,target);
         }finally{if(File.Exists(temp)) File.Delete(temp);}
