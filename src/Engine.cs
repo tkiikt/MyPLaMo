@@ -8,11 +8,15 @@ namespace MyPLaMo;
 
 sealed class Engine : IDisposable
 {
+    readonly string engineRoot;
+    public Engine(string? engineDirectory = null) => engineRoot = engineDirectory ?? ComputeDevices.DefaultRoot;
+    public Task<DeviceCatalog> ListDevices(CancellationToken ct) => ComputeDevices.Discover(engineRoot, ct);
     Process? process;
     ChildLifetime? lifetime;
     HttpClient? client;
     string loaded = "";
     public string Device {get; private set;} = "";
+    internal int? ProcessId => process is { HasExited: false } ? process.Id : null;
     public void Dispose()
     {
         if(process!=null)
@@ -23,27 +27,41 @@ sealed class Engine : IDisposable
         lifetime?.Dispose();lifetime=null;
         client?.Dispose(); client=null; loaded="";Device="";
     }
-    public async Task Load(string path,bool gpu,IProgress<string> progress,CancellationToken ct)
+    public Task Load(string path,bool gpu,IProgress<string> progress,CancellationToken ct) => Load(path, gpu ? "auto" : "cpu", progress, ct);
+    public async Task Load(string path,string selection,IProgress<string> progress,CancellationToken ct)
     {
-        var key = path + "|" + gpu;
+        var key = path + "|" + selection;
         if(loaded==key && process is {HasExited:false}) return;
         Dispose();
-        foreach(var useGpu in gpu ? new[]{true,false} : new[]{false})
+        var catalog = selection == "cpu" ? new DeviceCatalog([], []) : await ListDevices(ct);
+        var candidates = selection == "cpu" ? new[] { ComputeDevice.Cpu } : catalog.Candidates(selection);
+        string fallback = selection is not ("auto" or "cpu") && candidates.Length == 1 ? "指定GPUを利用できないため" : "";
+        foreach(var device in candidates)
         {
+            bool useGpu = device.Backend != "cpu";
             try
             {
-                progress.Report(useGpu ? "モデルを読み込み中（GPU 優先）…" : "モデルを読み込み中（CPU）…");
+                ct.ThrowIfCancellationRequested();
+                progress.Report($"モデルを読み込み中（{device.Label}）…" + (fallback == "" ? "" : $" · {fallback}"));
                 using var portProbe=new TcpListener(IPAddress.Loopback,0);
                 portProbe.Start();
                 int port=((IPEndPoint)portProbe.LocalEndpoint).Port;
                 portProbe.Stop();
                 var token=Guid.NewGuid().ToString("N");
-                var info=new ProcessStartInfo(Path.Combine(AppContext.BaseDirectory,"engine","llama-server.exe")){
-                    UseShellExecute=false,CreateNoWindow=true,RedirectStandardError=true,RedirectStandardOutput=true
-                };
-                foreach(var arg in new[]{"-m",path,"-c","8192","-np","1","--host","127.0.0.1","--port",port.ToString(),"--api-key",token,"--no-ui","--no-agent","--offline","--no-warmup","--verbosity","4"})
+                var info=ComputeDevices.StartInfo(engineRoot, device.Backend);
+                foreach(var arg in new[]{"-m",path,"-c","8192","-np","1","--host","127.0.0.1","--port",port.ToString(),"--api-key",token,"--no-ui","--no-agent","--offline","--verbosity","4"})
                     info.ArgumentList.Add(arg);
-                if(!useGpu){info.ArgumentList.Add("--device");info.ArgumentList.Add("none");info.ArgumentList.Add("-ngl");info.ArgumentList.Add("0");}
+                info.ArgumentList.Add("--device");
+                if(useGpu){
+                    // Isolate the selected adapter before the backend initializes; its local index becomes 0.
+                    info.Environment[device.Backend == "cuda" ? "CUDA_VISIBLE_DEVICES" : "GGML_VK_VISIBLE_DEVICES"] = device.Index.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    info.ArgumentList.Add(device.Backend == "cuda" ? "CUDA0" : "Vulkan0");
+                    info.ArgumentList.Add("--split-mode"); info.ArgumentList.Add("none");
+                }
+                else {
+                    info.ArgumentList.Add("none"); info.ArgumentList.Add("-ngl"); info.ArgumentList.Add("0");
+                    info.ArgumentList.Add("--no-op-offload"); info.ArgumentList.Add("--no-warmup");
+                }
                 bool offload=false;
                 process=new Process{StartInfo=info};
                 process.ErrorDataReceived+=(_,e)=>{if(e.Data!=null && System.Text.RegularExpressions.Regex.IsMatch(e.Data,@"offloaded [1-9]\d*/")) Volatile.Write(ref offload,true);};
@@ -62,10 +80,15 @@ sealed class Engine : IDisposable
                     try { using var health=await client.GetAsync("/health",ct); if(health.IsSuccessStatusCode) break; } catch(HttpRequestException){}
                     await Task.Delay(200,ct);
                 }
-                Device=Volatile.Read(ref offload) ? "GPU" : "CPU";
+                if(useGpu && !Volatile.Read(ref offload)) throw new IOException("選択したGPUにモデルを配置できませんでした。");
+                Device=useGpu ? device.Label : "CPU";
+                if(fallback != "") Device += $"（{fallback}）";
                 loaded=key;return;
             }
-            catch(Exception) when(useGpu && !ct.IsCancellationRequested){Dispose();}
+            catch(Exception) when(useGpu && !ct.IsCancellationRequested){
+                Dispose(); fallback = selection == "auto" ? "GPUの起動に失敗・代替で実行" : "指定GPUの起動に失敗したため";
+                progress.Report($"{device.Label}を利用できませんでした。次の実行先を確認しています…");
+            }
             catch{Dispose();throw;}
         }
     }

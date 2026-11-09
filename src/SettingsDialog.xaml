@@ -4,14 +4,14 @@
     Title="設定" PrimaryButtonText="保存" CloseButtonText="キャンセル"
     DefaultButton="Primary" PrimaryButtonClick="Save_Click"
     AutomationProperties.AutomationId="SettingsDialog">
-    <ScrollViewer MaxHeight="500" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Spacing="20" MinWidth="360" Padding="0,0,6,0">
+    <ScrollViewer x:Name="SettingsScroll" MaxHeight="620" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="20" MinWidth="420" Padding="0,0,6,0">
             <StackPanel Spacing="10">
                 <TextBlock Text="翻訳" FontWeight="SemiBold" />
-                <Grid ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                    <TextBlock Text="GPUを優先する（Vulkan）" VerticalAlignment="Center" />
-                    <ToggleSwitch x:Name="GpuToggle" AutomationProperties.AutomationId="GpuToggle" AutomationProperties.Name="GPUを優先する" Grid.Column="1" OnContent="" OffContent="" MinWidth="44" />
-                </Grid>
+                <ComboBox x:Name="DeviceCombo" AutomationProperties.AutomationId="DeviceCombo" Header="翻訳に使うデバイス" HorizontalAlignment="Stretch" SelectionChanged="Device_Changed" />
+                <TextBlock x:Name="DeviceHint" AutomationProperties.AutomationId="DeviceHint" Style="{StaticResource CaptionTextBlockStyle}" TextWrapping="Wrap" MaxWidth="420" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <Button x:Name="RefreshDevicesButton" AutomationProperties.AutomationId="RefreshDevicesButton" Content="GPU一覧を更新" Click="RefreshDevices_Click" />
+                <TextBlock x:Name="DeviceStatus" AutomationProperties.AutomationId="DeviceStatus" Style="{StaticResource CaptionTextBlockStyle}" TextWrapping="Wrap" MaxWidth="420" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 <NumberBox x:Name="InputLimit" AutomationProperties.AutomationId="InputLimit" Header="入力上限（文字）" Minimum="100" Maximum="4000" SmallChange="100" SpinButtonPlacementMode="Compact" />
             </StackPanel>
             <StackPanel Spacing="10">
