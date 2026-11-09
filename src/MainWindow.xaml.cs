@@ -106,7 +106,7 @@ public sealed partial class MainWindow : Window
     {
         var model = prefs.Active;
         ModelText.Text = model == null ? "翻訳モデルを選んでください" : $"PLaMo 3 Translate · {model.id.ToUpperInvariant()} · GGUF";
-        StatusText.Text = model == null ? "右上の「モデル」からダウンロード、または取得済みモデルを選択できます。" : engine.Device == "" ? "モデル未読み込み · " + (prefs.GPU ? "GPU 優先" : "CPU") : "準備完了 · " + engine.Device;
+        StatusText.Text = model == null ? "右上の「モデル」からダウンロード、または取得済みモデルを選択できます。" : engine.Device == "" ? "モデル未読み込み · " + prefs.ExecutionLabel : "準備完了 · " + engine.Device;
         CountText.Text = $"{InputText.Text.Length:N0} / {prefs.Limit:N0} 文字";
         if (!desktop.RegisterShortcut(prefs.Shortcut)) StatusText.Text += " · ショートカットが競合しています。設定で変更してください。";
     }
@@ -131,7 +131,7 @@ public sealed partial class MainWindow : Window
         modal = true;
         await engineGate.WaitAsync();
         try {
-            var settings = new SettingsDialog(prefs) { XamlRoot = Root.XamlRoot, RequestedTheme = Root.RequestedTheme };
+            var settings = new SettingsDialog(prefs, engine, lifetime.Token) { XamlRoot = Root.XamlRoot, RequestedTheme = Root.RequestedTheme };
             dialog = settings;
             if (await settings.ShowAsync() == ContentDialogResult.Primary) {
                 engine.Dispose();
@@ -177,7 +177,7 @@ public sealed partial class MainWindow : Window
         try {
             var model = prefs.Active;
             if (model == null || !prefs.LicenseAccepted) throw new IOException("MyPLaMoの「モデル」でモデルの準備を完了してください。");
-            await engine.Load(Path.Combine(prefs.Folder, model.file), prefs.GPU, new Progress<string>(), linked.Token);
+            await engine.Load(Path.Combine(prefs.Folder, model.file), prefs.ExecutionDevice, new Progress<string>(), linked.Token);
             return await engine.Translate(source, "", "ja", prefs.Style, linked.Token);
         } finally { engineGate.Release(); }
     }
@@ -240,7 +240,7 @@ public sealed partial class MainWindow : Window
         var source = InputText.Text; bool acquired = false;
         try {
             await engineGate.WaitAsync(job.Token); acquired = true;
-            await engine.Load(Path.Combine(prefs.Folder, model.file), prefs.GPU, new Progress<string>(s => StatusText.Text = s), job.Token);
+            await engine.Load(Path.Combine(prefs.Folder, model.file), prefs.ExecutionDevice, new Progress<string>(s => StatusText.Text = s), job.Token);
             StatusText.Text = $"{model.id.ToUpperInvariant()} · {engine.Device} · 翻訳中…";
             OutputText.Text = await engine.Translate(source, Language(FromLanguage), Language(ToLanguage), prefs.Style, job.Token);
             var inferred = Language(FromLanguage) != "" ? Language(FromLanguage) : LanguageDetection.Guess(source);

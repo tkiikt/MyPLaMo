@@ -1,5 +1,5 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
-  <Package Name="MyPLaMo" Manufacturer="MyPLaMo" Version="1.2.1" Codepage="932" Language="1041" UpgradeCode="4BAD4A08-D98B-4256-9D1F-C9280D67D45B" Scope="perUser" InstallerVersion="500">
+  <Package Name="MyPLaMo" Manufacturer="MyPLaMo" Version="1.3.0" Codepage="932" Language="1041" UpgradeCode="4BAD4A08-D98B-4256-9D1F-C9280D67D45B" Scope="perUser" InstallerVersion="500">
     <MajorUpgrade Schedule="afterInstallInitialize" DowngradeErrorMessage="新しいバージョンがインストールされています。" />
     <!-- This is the EXE component GUID used by the released 1.1.1 MSI.
          With no FileSearch child, Windows Installer returns its parent folder.

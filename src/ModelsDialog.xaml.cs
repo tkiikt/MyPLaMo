@@ -67,7 +67,7 @@ public sealed partial class ModelsDialog : ContentDialog
         var model = Model.All.Single(x => x.id == (string)((Button)sender).Tag);
         await RunOperation(async (ct, progress) => {
             await model.Prepare(prefs.Folder, progress, ct);
-            await engine.Load(Path.Combine(prefs.Folder, model.file), prefs.GPU, progress, ct);
+            await engine.Load(Path.Combine(prefs.Folder, model.file), prefs.ExecutionDevice, progress, ct);
             OperationStatus.Text = "テスト翻訳中…";
             await engine.Translate("Hello.", "en", "ja", "", ct);
             prefs.ModelId = model.id; prefs.LicenseAccepted = true; prefs.Save();

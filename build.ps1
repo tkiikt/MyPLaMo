@@ -9,16 +9,8 @@ try {
     $releaseRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'release'))+[IO.Path]::DirectorySeparatorChar
     if(!$payloadPath.StartsWith($releaseRoot,[StringComparison]::OrdinalIgnoreCase)){throw 'Invalid release payload path'}
     if(Test-Path -LiteralPath $payloadPath){Remove-Item -LiteralPath $payloadPath -Recurse -Force}
-    New-Item -ItemType Directory -Force build,engine,"$folder/engine","$folder/licenses" | Out-Null
-    $archive='build/engine.zip'
-    $tag='b12121'
-    if(!(Test-Path $archive)){
-        curl.exe -fLs --retry 3 -o $archive "https://github.com/ggml-org/llama.cpp/releases/download/$tag/llama-$tag-bin-win-vulkan-x64.zip"
-    }
-    if((Get-FileHash $archive).Hash -ne '73111d348dcbfa86050611c28b8bef523c849d80a6e5529e25b67f1b2055e918'){throw 'Unexpected engine archive hash'}
-    tar -xf $archive -C engine
-    Copy-Item engine/ggml*.dll,engine/libomp.dll,engine/llama.dll,engine/llama-common.dll,engine/mtmd.dll,engine/llama-server*,engine/LICENSE* "$folder/engine"
-    curl.exe -fLs --retry 2 -o "$folder/engine/LICENSE-llama.cpp" "https://raw.githubusercontent.com/ggml-org/llama.cpp/$tag/LICENSE"
+    New-Item -ItemType Directory -Force build,"$folder/licenses" | Out-Null
+    ./scripts/Prepare-Engine.ps1
     # WinUI's native runtime and resource files travel with the portable folder/MSI.
     dotnet publish src -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:DebugType=None -o $folder
     $assets=Get-Content src/obj/project.assets.json -Raw |ConvertFrom-Json -AsHashtable

@@ -78,6 +78,12 @@ sealed class Preferences
     public string Style {get;set;} = "";
     public bool ChromeEnabled {get;set;}
     public bool GPU {get;set;} = true;
+    public string ComputeDevice {get;set;} = "auto";
+    public string ComputeDeviceLabel {get;set;} = "";
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string ExecutionDevice => !GPU ? "cpu" : string.IsNullOrWhiteSpace(ComputeDevice) ? "auto" : ComputeDevice;
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string ExecutionLabel => ExecutionDevice switch { "cpu" => "CPUのみ", "auto" => "自動（GPU優先）", _ => string.IsNullOrWhiteSpace(ComputeDeviceLabel) ? "指定したGPU" : ComputeDeviceLabel };
     public bool History {get;set;}
     public string Shortcut {get;set;} = "T";
     public bool LicenseAccepted {get;set;}
