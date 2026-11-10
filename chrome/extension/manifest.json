@@ -21,7 +21,7 @@
   },
   "name": "MyPLaMo ページ翻訳",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzuY/p4vBQKLCCsQeC8rWRlM6hct7llpe85GhlBV3rOdVXZHXaedCgDBgtKpJyehZgr8fW3HWqRqbl7cNxQyjgNNNbWBfNaV0LgUHlkCnnpCjrmmLzlplpqUCnQYHo8Aon0jUJZHCm66yiZX41Q+LANOrclukdO6Djh4TRv4VtsOc+UrZ3L6hf6Vbap80ASHq6EcFtTJL8LHEYBiNUzHEtW9q2h9v8KhMhiKc6MMUw/9g3ZukxHj2iTzAixSDSw3hXgY8vcuatGn+MgdF/ure2MFn1F3ORWu4UxV7EPlDmLSFmfgX546xfw5QsZe3HfUXisu6gL/m/EYyw+BHmicwQQIDAQAB",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "commands": {
     "_execute_action": {
       "suggested_key": {

@@ -20,8 +20,9 @@
 
   function eligible(node) {
     const el = node.parentElement;
+    // Page language can describe the UI while posts/comments use another language.
     return node.isConnected && el && !el.closest(excluded) && !el.isContentEditable &&
-      !/^ja(?:-|$)/i.test(el.closest("[lang]")?.lang || "") && /\p{L}/u.test(node.data);
+      /\p{L}/u.test(node.data);
   }
 
   function add(node) {

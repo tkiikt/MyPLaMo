@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const script = fs.readFileSync(path.join(__dirname,'../extension/selection.js'),'utf8');
 const tick = () => new Promise(r => setTimeout(r,110));
-function fixture(reply = {translation:'こんにちは',connectionLabel:'MyPLaMo for Mac v0.2.1に接続中'}) {
+function fixture(reply = {translation:'こんにちは',server:{platform:'windows',appVersion:'1.3.0',protocolVersion:1},connectionLabel:'MyPLaMo（Windows） v1.3.0に接続中'}) {
   const dom = new JSDOM('<body><p>Hello world</p><input value="private"><div contenteditable="true">Private edit</div></body>', {runScripts:'outside-only',url:'https://example.test'});
   const w = dom.window, calls = [], roots = [], copies = [];
   const attach = w.Element.prototype.attachShadow;
@@ -28,12 +28,25 @@ test('selection shows icon; click translates without changing page; copy and clo
     const s=await f.select(); assert.ok(s.querySelector('.launch img')); assert.equal(f.calls.length,0);
     s.querySelector('.launch').click(); await tick();
     assert.equal(f.calls[0].text,'Hello world'); assert.equal(s.querySelector('.result').textContent,'こんにちは');
-    assert.match(s.querySelector('.connection').textContent,/MyPLaMo for Mac/);
+    assert.equal(s.querySelector('header .connection').textContent,'v1.3.0に接続中');
+    assert.equal(s.querySelector('.result + .connection'),null);
     assert.equal(f.w.document.querySelector('p').textContent,'Hello world');
+    assert.ok(s.querySelector('.copy svg.clipboard'));
+    assert.equal(s.querySelector('.copy').textContent.trim(),'');
     s.querySelector('.copy').click(); await tick(); assert.deepEqual(f.copies,['こんにちは']);
-    assert.equal(s.querySelector('.copy').textContent,'コピーしました');
+    assert.equal(s.querySelector('.copy').dataset.state,'copied');
+    assert.equal(s.querySelector('.copy').getAttribute('aria-label'),'コピーしました');
     s.querySelector('.close').click(); assert.equal(s.host.isConnected,false);
   } finally {f.dom.window.close();}
+});
+
+test('connection header supports Mac and legacy servers without a platform label',async () => {
+  for(const server of [{platform:'macos',appVersion:'0.2.1',protocolVersion:1},undefined]) {
+    const f=fixture({translation:'こんにちは',server}); try {
+      const s=await f.select(); s.querySelector('.launch').click(); await tick();
+      assert.equal(s.querySelector('header .connection').textContent,server?'v0.2.1に接続中':'接続中（バージョン未確認）');
+    } finally {f.dom.window.close();}
+  }
 });
 test('oversized selection is rejected without sending; connection errors are visible',async () => {
   for(const long of [true,false]) {

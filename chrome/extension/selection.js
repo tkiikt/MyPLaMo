@@ -28,9 +28,10 @@
       .launch{width:40px;height:40px;padding:6px;border-radius:50%;background:white;box-shadow:0 3px 16px #0004;display:grid;place-items:center}
       .launch img{width:28px;height:28px;pointer-events:none}
       section{width:480px;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);overflow:auto;background:#283444;color:#f5f7fb;border-radius:14px;box-shadow:0 6px 24px #0004;padding:18px;font:16px/1.6 system-ui;text-align:left}
-      header{display:flex;align-items:center;gap:8px;color:#b7c4d5;font-size:13px}header strong{flex:1;font-weight:500}
-      header button{background:transparent;color:#e3ebf6;padding:4px 8px;border-radius:5px}header button:hover{background:#ffffff20}button:disabled{opacity:.45;cursor:default}
-      .result{margin:10px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;user-select:text}.connection{font-size:11px;color:#b7c4d5;margin-top:10px;overflow-wrap:anywhere}
+      header{display:flex;align-items:center;gap:8px;color:#b7c4d5;font-size:13px}.heading{flex:1;min-width:0;display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 10px}header strong{font-weight:500}
+      header button{flex:none;display:grid;place-items:center;width:30px;height:30px;background:transparent;color:#e3ebf6;padding:5px;border-radius:5px}header button:hover{background:#ffffff20}button:disabled{opacity:.45;cursor:default}
+      .copy svg{width:18px;height:18px;pointer-events:none}.copy .copied,.copy .failed{display:none}.copy[data-state="copied"] .clipboard,.copy[data-state="failed"] .clipboard{display:none}.copy[data-state="copied"] .copied,.copy[data-state="failed"] .failed{display:block}
+      .result{margin:10px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;user-select:text}.connection{font-size:11px;overflow-wrap:anywhere}
     </style>`;
     // Keep the page's selected text when pressing our launcher.
     host.addEventListener('pointerdown', event => {
@@ -69,7 +70,11 @@
     currentShadow.querySelector('.launch').remove();
     const section = document.createElement('section');
     section.setAttribute('role','dialog'); section.setAttribute('aria-label','MyPLaMo 選択文の翻訳');
-    section.innerHTML = '<header><strong>MyPLaMo · 翻訳</strong><button type="button" class="copy" disabled aria-label="訳文をコピー">コピー</button><button type="button" class="close" aria-label="翻訳を閉じる">×</button></header><div class="result" role="status">翻訳中…</div><div class="connection"></div>';
+    section.innerHTML = `<header><div class="heading"><strong>MyPLaMo · 翻訳</strong><span class="connection"></span></div><button type="button" class="copy" disabled aria-label="訳文をコピー" title="訳文をコピー">
+      <svg class="clipboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+      <svg class="copied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m5 12 4 4L19 6"/></svg>
+      <svg class="failed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 4h0"/></svg>
+      </button><button type="button" class="close" aria-label="翻訳を閉じる">×</button></header><div class="result" role="status">翻訳中…</div>`;
     currentShadow.append(section);
     section.querySelector('.close').onclick = dismiss;
     const output = section.querySelector('.result'), copy = section.querySelector('.copy');
@@ -83,8 +88,14 @@
           const ok = document.execCommand('copy'); field.remove(); copy.focus();
           if (!ok) throw new Error('copy failed');
         }
-        copy.textContent = 'コピーしました';
-      } catch { copy.textContent = 'コピーできません'; }
+        copy.dataset.state = 'copied';
+        copy.title = 'コピーしました';
+        copy.setAttribute('aria-label', copy.title);
+      } catch {
+        copy.dataset.state = 'failed';
+        copy.title = 'コピーできません';
+        copy.setAttribute('aria-label', copy.title);
+      }
     };
     position();
     if (text.length > 2000) { output.textContent = '選択した文章が長すぎます。2,000文字以内で選択してください。'; position(); return; }
@@ -93,7 +104,9 @@
       if (token !== generation) return;
       if (reply?.error || !reply?.translation) throw new Error(reply?.error || '翻訳エンジンが応答しませんでした。');
       translation = reply.translation; output.textContent = translation; copy.disabled = false;
-      section.querySelector('.connection').textContent = reply.connectionLabel || '';
+      section.querySelector('.connection').textContent = reply.server
+        ? 'v' + reply.server.appVersion + 'に接続中'
+        : '接続中（バージョン未確認）';
     } catch (error) {
       if (token !== generation) return;
       output.textContent = /Extension context invalidated/i.test(error.message) ? '拡張機能が更新されました。このページを再読み込みしてください。' : error.message;
