@@ -1,0 +1,43 @@
+<ContentDialog x:Class="MyPLaMo.GlossariesDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="用語集" CloseButtonText="閉じる">
+    <Grid x:Name="EditorRoot" MinWidth="640" RowSpacing="14">
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <TextBlock Text="用途ごとに用語集を作成できます。変更は各「保存」でこのPCに保存され、Chrome拡張からも選べます。" TextWrapping="Wrap" />
+        <Grid Grid.Row="1" ColumnSpacing="8">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <ComboBox x:Name="Books" Header="用語集" AutomationProperties.AutomationId="GlossaryBooks" HorizontalAlignment="Stretch" SelectionChanged="Book_Changed" />
+            <Button Grid.Column="1" Content="新規作成" AutomationProperties.AutomationId="NewGlossary" Click="New_Click" VerticalAlignment="Bottom" />
+            <Button x:Name="DeleteBook" Grid.Column="2" Content="用語集を削除" AutomationProperties.AutomationId="DeleteGlossary" VerticalAlignment="Bottom">
+                <Button.Flyout><Flyout><StackPanel Spacing="12"><TextBlock x:Name="DeleteBookPrompt" TextWrapping="Wrap" MaxWidth="320" /><Button Content="削除する" Click="DeleteBook_Click" /></StackPanel></Flyout></Button.Flyout>
+            </Button>
+        </Grid>
+        <Grid Grid.Row="2" ColumnSpacing="8">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <TextBox x:Name="BookName" Header="用語集名" MaxLength="80" AutomationProperties.AutomationId="GlossaryName" />
+            <Button Grid.Column="1" Content="名前を保存" AutomationProperties.AutomationId="SaveGlossaryName" Click="Rename_Click" VerticalAlignment="Bottom" />
+        </Grid>
+        <Grid Grid.Row="3" RowSpacing="8">
+            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+            <TextBox x:Name="Search" Header="用語を検索" AutomationProperties.AutomationId="GlossarySearch" TextChanged="Search_Changed" />
+            <ListView x:Name="Terms" Grid.Row="1" MinHeight="100" MaxHeight="220" AutomationProperties.AutomationId="GlossaryTerms" SelectionChanged="Term_Changed" />
+        </Grid>
+        <Grid Grid.Row="4" ColumnSpacing="10" RowSpacing="10">
+            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+            <ComboBox x:Name="TermFrom" Header="翻訳元" HorizontalAlignment="Stretch" AutomationProperties.AutomationId="TermFrom" />
+            <ComboBox x:Name="TermTo" Grid.Column="1" Header="翻訳先" HorizontalAlignment="Stretch" AutomationProperties.AutomationId="TermTo" />
+            <TextBox x:Name="TermSource" Grid.Row="1" Header="原語" MaxLength="200" AutomationProperties.AutomationId="TermSource" />
+            <TextBox x:Name="TermTarget" Grid.Row="1" Grid.Column="1" Header="訳語" MaxLength="200" AutomationProperties.AutomationId="TermTarget" />
+            <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="8">
+                <Button Content="用語を保存" AutomationProperties.AutomationId="SaveTerm" Style="{StaticResource AccentButtonStyle}" Click="SaveTerm_Click" />
+                <Button Content="新しい用語" AutomationProperties.AutomationId="NewTerm" Click="NewTerm_Click" />
+                <Button x:Name="DeleteTerm" Content="選択した用語を削除" AutomationProperties.AutomationId="DeleteTerm">
+                    <Button.Flyout><Flyout><StackPanel Spacing="12"><TextBlock Text="選択した用語を削除しますか？" /><Button Content="削除する" Click="DeleteTerm_Click" /></StackPanel></Flyout></Button.Flyout>
+                </Button>
+            </StackPanel>
+        </Grid>
+        <TextBlock x:Name="Message" Grid.Row="5" TextWrapping="Wrap" AutomationProperties.AutomationId="GlossaryMessage" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+    </Grid>
+</ContentDialog>

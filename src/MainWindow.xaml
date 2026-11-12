@@ -5,7 +5,7 @@
     <Grid x:Name="Root" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Padding="28,24" RowSpacing="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
-            <RowDefinition Height="*" /><RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid ColumnSpacing="20">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
@@ -21,6 +21,7 @@
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                 <Button x:Name="HistoryButton" AutomationProperties.AutomationId="HistoryButton" Click="History_Click" Content="履歴" />
+                <Button x:Name="GlossariesButton" AutomationProperties.AutomationId="GlossariesButton" Click="Glossaries_Click" Content="用語集" />
                 <Button x:Name="ModelsButton" AutomationProperties.AutomationId="ModelsButton" AutomationProperties.Name="モデル" Click="Models_Click">
                     <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon Glyph="&#xEDA2;" FontSize="16" /><TextBlock Text="モデル" /></StackPanel>
                 </Button>
@@ -34,7 +35,18 @@
             <CheckBox x:Name="ChromeToggle" AutomationProperties.AutomationId="ChromeToggle" Content="Chromeからの翻訳を受け付ける" Checked="Chrome_Changed" Unchecked="Chrome_Changed" />
             <TextBlock Grid.Column="1" Text="Built with PLaMo" VerticalAlignment="Center" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
         </Grid>
-        <Grid Grid.Row="2" ColumnSpacing="16" RowSpacing="12">
+        <Grid Grid.Row="2" ColumnSpacing="16">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="180" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <ComboBox x:Name="GlossaryChoice" Header="用語集" AutomationProperties.AutomationId="GlossaryChoice" HorizontalAlignment="Stretch" SelectionChanged="Options_Changed" />
+            <ComboBox x:Name="DocumentFormat" Grid.Column="1" Header="文書形式" AutomationProperties.AutomationId="DocumentFormat" HorizontalAlignment="Stretch" SelectionChanged="Options_Changed">
+                <x:String>自動判定</x:String><x:String>テキスト</x:String><x:String>Markdown</x:String><x:String>JSON</x:String><x:String>YAML</x:String>
+            </ComboBox>
+            <CheckBox x:Name="UseContext" Grid.Column="2" Content="文脈を考慮" AutomationProperties.AutomationId="UseContext" VerticalAlignment="Bottom" Checked="Context_Changed" Unchecked="Context_Changed" />
+            <Button Grid.Column="3" Content="参照する文脈" AutomationProperties.AutomationId="ContextButton" VerticalAlignment="Bottom">
+                <Button.Flyout><Flyout><TextBox x:Name="ContextText" Header="状況や分野（任意）" PlaceholderText="例：ソフトウェアの操作マニュアル" AutomationProperties.AutomationId="ContextText" Width="320" MaxLength="800" AcceptsReturn="True" TextWrapping="Wrap" /></Flyout></Button.Flyout>
+            </Button>
+        </Grid>
+        <Grid Grid.Row="3" ColumnSpacing="16" RowSpacing="12">
             <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -72,7 +84,7 @@
                 </Grid>
             </Border>
         </Grid>
-        <Grid Grid.Row="3" ColumnSpacing="24">
+        <Grid Grid.Row="4" ColumnSpacing="24">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <StackPanel VerticalAlignment="Center" Spacing="5">
                 <TextBlock x:Name="ModelText" AutomationProperties.AutomationId="ModelText" FontWeight="SemiBold" />

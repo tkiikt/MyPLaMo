@@ -4,4 +4,5 @@
     <Compile Include="Program.cs;../../src/ComputeDevices.cs;../../src/Engine.cs;../../src/Models.cs;../../src/ChildLifetime.cs" />
     <EmbeddedResource Include="../../src/catalog.json" LogicalName="MyPLaMo.catalog.json" />
   </ItemGroup>
+  <Import Project="../TranslationSources.props" />
 </Project>

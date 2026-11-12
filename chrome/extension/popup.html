@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MyPLaMo 翻訳メニュー</title><link rel="stylesheet" href="popup.css"></head>
+<body>
+<header><img src="icons/myplamo-48.png" alt="" width="32" height="32"><div><strong>MyPLaMo</strong><div id="connection">本体との接続を確認中…</div></div><span class="local">このPCだけで翻訳</span></header>
+<div class="layout"><nav aria-label="設定メニュー">
+  <button data-panel="translation" aria-current="page">翻訳</button><button data-panel="filters">自動翻訳フィルター</button><button data-panel="style">文体制御</button><button data-panel="cache">キャッシュ</button><button data-panel="display">表示設定</button>
+</nav><main>
+<section id="translation"><h1>ページ翻訳</h1><p class="hint" id="current-page"></p>
+  <div class="languages"><label>原語<select id="from" data-setting="from"></select></label><span aria-hidden="true">→</span><label>訳語<select id="to" data-setting="to"></select></label></div>
+  <p class="hint">原語が「自動検出」で合わない場合は、言語を指定してください。</p>
+  <div class="actions"><button id="translate" class="primary">このページを翻訳</button><button id="restore">原文に戻す</button></div>
+  <label class="field">用語集<select id="glossary" data-setting="glossaryId"><option value="">用語集なし</option></select></label><p class="hint">用語集の作成・編集はMyPLaMo本体の「用語集」から行えます。</p>
+  <label class="toggle"><span><b>自動翻訳</b><small>ページを開いたときに翻訳します</small></span><input type="checkbox" data-setting="autoTranslate"></label>
+  <label class="toggle"><span><b>ホバー時に原文を表示</b><small>翻訳した文章にマウスを重ねて確認できます</small></span><input type="checkbox" data-setting="hoverOriginal"></label>
+  <label class="toggle"><span><b>テキスト選択時に翻訳ボタンを表示</b></span><input type="checkbox" data-setting="selectionButton"></label>
+</section>
+<section id="filters" hidden><h1>自動翻訳フィルター</h1><p>自動翻訳するページをURLで絞り込みます。手動翻訳には影響しません。</p>
+  <label class="toggle"><span><b>フィルターを使用</b></span><input type="checkbox" data-setting="filterEnabled"></label>
+  <label class="field">方式<select data-setting="filterMode"><option value="blacklist">除外リスト（登録したURLを翻訳しない）</option><option value="whitelist">許可リスト（登録したURLだけ翻訳）</option></select></label>
+  <div class="actions"><button data-add="filterPatterns" data-scope="page">このページを追加</button><button data-add="filterPatterns" data-scope="site">このサイトを追加</button></div>
+  <form data-rule="filterPatterns"><label>URLパターン<input placeholder="https://example.com/*" required></label><button type="submit">追加</button></form>
+  <label class="field">登録したURLを検索<input id="filter-search" type="search"></label><ul id="filter-list" class="rules"></ul>
+</section>
+<section id="style" hidden><h1>サイトごとの文体</h1><p>日本語の訳文は「です・ます」調が標準です。登録したURLでは「だ・である」調にします。</p>
+  <div class="actions"><button data-add="plainPatterns" data-scope="page">このページを追加</button><button data-add="plainPatterns" data-scope="site">このサイトを追加</button></div>
+  <form data-rule="plainPatterns"><label>URLパターン<input placeholder="https://example.com/*" required></label><button type="submit">追加</button></form>
+  <label class="field">登録したURLを検索<input id="style-search" type="search"></label><ul id="style-list" class="rules"></ul>
+  <button id="reset-style">登録をすべて解除</button>
+</section>
+<section id="cache" hidden><div class="heading"><h1>キャッシュ管理</h1><button id="clear-cache" class="danger">すべて削除</button></div><p>翻訳結果をこのブラウザー内に保存して再利用します。</p>
+  <div id="cache-summary" class="summary"></div><label class="field">ページのURLを検索<input id="cache-search" type="search"></label><ul id="cache-list" class="rules"></ul>
+  <p class="hint">最大100ページ・約6MB。古いページから自動的に削除します。言語・文体・用語集・モデルが異なる結果は別に保存します。</p>
+</section>
+<section id="display" hidden><h1>表示設定</h1>
+  <label class="toggle"><span><b>スタイルの自動調整</b><small>改行と折り返しを訳文に合わせます</small></span><input type="checkbox" data-setting="adjustStyle"></label>
+  <label class="toggle"><span><b>マウスが離れたら原文を非表示</b><small>オフの場合はクリック・Escapeで閉じます</small></span><input type="checkbox" data-setting="hideOnLeave"></label>
+  <label class="field">翻訳中のテキスト背景色<select data-setting="highlight"><option value="none">非表示</option><option value="subtle">淡い色</option><option value="strong">はっきりした色</option></select></label>
+  <p class="hint">表示設定は開いているページにも反映されます。言語・用語集・文体を変更した場合は「このページを翻訳」で再翻訳してください。</p>
+</section>
+</main></div><footer><span id="status" role="status" aria-live="polite"></span><span>Built with PLaMo</span></footer>
+<dialog id="confirm"><form method="dialog"><p id="confirm-text"></p><div class="actions"><button value="cancel">キャンセル</button><button value="delete" class="danger">削除する</button></div></form></dialog>
+<script src="settings.js"></script><script src="popup.js"></script></body></html>

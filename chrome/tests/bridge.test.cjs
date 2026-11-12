@@ -72,3 +72,13 @@ test('rejects incompatible and malformed server metadata', async () => {
     await assert.rejects(result); assert.equal(f.sockets[0].closed,true);
   }
 });
+
+test('metadata handshake and translation options reach the server without dropping fields',async () => {
+  const f=fixture(); const metadata=f.bridgeRequest({action:'metadata'}); f.sockets[0].onopen();
+  assert.deepEqual(f.sockets[0].sent,{action:'metadata',protocolVersion:1});
+  f.sockets[0].onmessage({data:JSON.stringify({glossaries:[],modelId:'2b',server:{platform:'windows',appVersion:'1.4.0',protocolVersion:1,capabilities:['options']}})});
+  assert.equal((await metadata).modelId,'2b');
+  const message={text:'Hello',from:'en',to:'ja',style:'plain',glossaryId:'g1',context:'News'};
+  const pending=f.bridgeRequest(message); f.sockets[1].onopen(); assert.deepEqual(f.sockets[1].sent,{...message,protocolVersion:1});
+  f.sockets[1].onmessage({data:'{"translation":"こんにちは"}'}); await pending;
+});

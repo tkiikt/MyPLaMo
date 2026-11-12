@@ -1,0 +1,7 @@
+<Project>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)../src/Translation.cs;$(MSBuildThisFileDirectory)../src/Glossaries.cs;$(MSBuildThisFileDirectory)../src/Lang.cs" />
+    <PackageReference Include="Markdig" Version="1.6.0" />
+    <PackageReference Include="YamlDotNet" Version="18.1.0" />
+  </ItemGroup>
+</Project>

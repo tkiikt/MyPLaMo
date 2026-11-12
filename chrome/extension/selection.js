@@ -42,6 +42,7 @@
     document.documentElement.append(host);
   }
   function inspect() {
+    if (globalThis.myPLaMoPreferences?.selectionButton === false) { dismiss(); return; }
     if (host && shadow.activeElement) return;
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed || !selection.rangeCount) { dismiss(); return; }
@@ -100,7 +101,7 @@
     position();
     if (text.length > 2000) { output.textContent = '選択した文章が長すぎます。2,000文字以内で選択してください。'; position(); return; }
     try {
-      const reply = await chrome.runtime.sendMessage({text});
+      const reply = await chrome.runtime.sendMessage({text,context:document.title.slice(0,200)});
       if (token !== generation) return;
       if (reply?.error || !reply?.translation) throw new Error(reply?.error || '翻訳エンジンが応答しませんでした。');
       translation = reply.translation; output.textContent = translation; copy.disabled = false;
@@ -122,4 +123,5 @@
   document.addEventListener('pointerdown', event => { if (host && !event.composedPath().includes(host)) dismiss(); });
   window.addEventListener('scroll', event => { if (!host || !event.composedPath().includes(host)) dismiss(); }, true);
   window.addEventListener('resize', dismiss);
+  document.addEventListener('myplamo-settings-changed', () => { if (globalThis.myPLaMoPreferences?.selectionButton === false) dismiss(); });
 })();

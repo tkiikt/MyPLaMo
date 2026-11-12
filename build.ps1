@@ -23,12 +23,13 @@ try {
             Copy-Item $_.FullName (Join-Path "$folder/licenses" (($lib -replace '/','-')+'-'+$_.Name))
         }
     }
-    foreach($lib in $assets.libraries.Keys | Where-Object {$_ -match '^(Microsoft\.WindowsAppSDK(?:\.[^/]+)?|CommunityToolkit\.Mvvm)/'}){
+    foreach($lib in $assets.libraries.Keys | Where-Object {$_ -match '^(Microsoft\.WindowsAppSDK(?:\.[^/]+)?|CommunityToolkit\.Mvvm|Markdig|YamlDotNet)/'}){
         $base=$assets.packageFolders.Keys | ForEach-Object {Join-Path $_ $lib.ToLowerInvariant()} | Where-Object {Test-Path $_} | Select-Object -First 1
         Get-ChildItem -LiteralPath $base -File | Where-Object {$_.Name -match 'LICENSE|NOTICE'} | ForEach-Object {
             Copy-Item -LiteralPath $_.FullName -Destination (Join-Path "$folder/licenses" (($lib -replace '/','-')+'-'+$_.Name))
         }
     }
+    Copy-Item -LiteralPath 'docs/licenses/LICENSE-Markdig.txt','docs/licenses/LICENSE-YamlDotNet.txt' -Destination "$folder/licenses"
     ./chrome/build.ps1
     Copy-Item README.md,LICENSE,LICENSE-MIT,MyPLaMo.png,MyPLaMo_Models.png $folder
     if(!(Test-Path build/tools/wix.exe)){dotnet tool install wix --version 5.0.2 --tool-path build/tools}

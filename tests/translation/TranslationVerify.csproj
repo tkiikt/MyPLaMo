@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0-windows</TargetFramework><OutputType>Exe</OutputType><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><EnableDefaultCompileItems>false</EnableDefaultCompileItems><RootNamespace>MyPLaMo</RootNamespace></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs;../../src/Models.cs;../../src/Engine.cs;../../src/ComputeDevices.cs;../../src/ChildLifetime.cs;../../src/ChromeBridge.cs" />
+    <EmbeddedResource Include="../../src/catalog.json" LogicalName="MyPLaMo.catalog.json" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <Import Project="../TranslationSources.props" />
+</Project>
