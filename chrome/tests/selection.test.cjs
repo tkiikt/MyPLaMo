@@ -81,3 +81,12 @@ test('translation output is text, never executable markup',async () => {
     assert.equal(s.querySelector('.result img'),null);assert.match(s.querySelector('.result').textContent,/<img/);
   } finally {f.dom.window.close();}
 });
+
+test('selection launcher can be disabled and re-enabled without reloading',async () => {
+  const f=fixture(); try {
+    f.w.myPLaMoPreferences={selectionButton:false}; await f.select(); assert.equal(f.roots.length,0);
+    f.w.myPLaMoPreferences={selectionButton:true}; const s=await f.select(); assert.ok(s.querySelector('.launch'));
+    f.w.myPLaMoPreferences={selectionButton:false}; f.w.document.dispatchEvent(new f.w.CustomEvent('myplamo-settings-changed'));
+    assert.equal(s.host.isConnected,false);
+  } finally {f.dom.window.close();}
+});

@@ -21,13 +21,17 @@ public sealed partial class MainWindow : Window
     readonly SemaphoreSlim engineGate = new(1);
     readonly CancellationTokenSource lifetime = new();
     readonly List<Entry> entries = [];
+    GlossaryStore? glossaries;
+    string glossaryError = "";
+    sealed record GlossaryOption(string Id, string Name) { public override string ToString() => Name; }
+    static readonly string[] Formats = ["auto", "text", "markdown", "json", "yaml"];
     readonly NativeDesktop desktop;
     readonly bool startHidden;
     readonly nint hwnd;
     ChromeBridge? bridge;
     ContentDialog? dialog;
     CancellationTokenSource? job;
-    bool initialized, syncingChrome, modal, capturing, quitting;
+    bool initialized, syncingChrome, syncingOptions, modal, capturing, quitting;
     nint origin;
     uint originPid;
     static string LogPath => Path.Combine(Preferences.Home, "history.json");
@@ -51,6 +55,10 @@ public sealed partial class MainWindow : Window
         SelectLanguage(FromLanguage, prefs.Source); SelectLanguage(ToLanguage, prefs.Target);
         TranslationStyle.SelectedIndex = Math.Max(0, Array.IndexOf(new[] { "", "polite", "plain" }, prefs.Style));
         TranslationStyle.IsEnabled = Language(ToLanguage) == "ja";
+        try { glossaries = new GlossaryStore(); } catch (Exception ex) { glossaryError = ex.Message; }
+        RefreshGlossaries();
+        DocumentFormat.SelectedIndex = Math.Max(0, Array.IndexOf(Formats, prefs.DocumentFormat));
+        UseContext.IsChecked = prefs.UseContext;
         desktop = new NativeDesktop(hwnd, Reveal, () => _ = QuitAsync(), () => { if (!modal && !capturing && job == null) _ = CaptureSelection(); });
         var translateKey = new KeyboardAccelerator { Key = VirtualKey.Enter, Modifiers = VirtualKeyModifiers.Control };
         translateKey.Invoked += async (_, e) => { e.Handled = true; if (job == null) await RunTranslation(); };
@@ -148,7 +156,12 @@ public sealed partial class MainWindow : Window
         syncingChrome = true; ChromeToggle.IsEnabled = false;
         try {
             if (ChromeToggle.IsChecked == true) {
-                bridge = new ChromeBridge((source, ct) => OnUiThread(() => TranslateForChrome(source, ct)));
+                bridge = new ChromeBridge((request, ct) => OnUiThread(() => TranslateForChrome(request, ct)), ct => OnUiThread(() => Task.FromResult<object>(new {
+                    glossaries = glossaries?.Items.Select(g => new { id = g.Id, name = g.Name, count = g.Terms.Count }).ToArray() ?? [],
+                    glossaryRevision = glossaries?.Revision ?? "", glossaryError,
+                    modelId = prefs.ModelId,
+                    languages = Lang.List.Select(l => new { id = l.Id, name = l.Name }).ToArray()
+                })));
                 await bridge.Start();
             } else if (bridge != null) { await bridge.DisposeAsync(); bridge = null; }
             prefs.ChromeEnabled = ChromeToggle.IsChecked == true; prefs.Save();
@@ -159,9 +172,9 @@ public sealed partial class MainWindow : Window
         } finally { syncingChrome = false; ChromeToggle.IsEnabled = true; }
     }
 
-    Task<string> OnUiThread(Func<Task<string>> action)
+    Task<T> OnUiThread<T>(Func<Task<T>> action)
     {
-        var result = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var result = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
         if (!DispatcherQueue.TryEnqueue(async () => {
             try { result.TrySetResult(await action()); }
             catch (OperationCanceledException) { result.TrySetCanceled(); }
@@ -170,7 +183,7 @@ public sealed partial class MainWindow : Window
         return result.Task;
     }
 
-    async Task<string> TranslateForChrome(string source, CancellationToken ct)
+    async Task<string> TranslateForChrome(TranslationRequest request, CancellationToken ct)
     {
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, lifetime.Token);
         await engineGate.WaitAsync(linked.Token);
@@ -178,7 +191,8 @@ public sealed partial class MainWindow : Window
             var model = prefs.Active;
             if (model == null || !prefs.LicenseAccepted) throw new IOException("MyPLaMoの「モデル」でモデルの準備を完了してください。");
             await engine.Load(Path.Combine(prefs.Folder, model.file), prefs.ExecutionDevice, new Progress<string>(), linked.Token);
-            return await engine.Translate(source, "", "ja", prefs.Style, linked.Token);
+            var terms = GetTerms(request.GlossaryId);
+            return await DocumentTranslation.Translate(request, (source, context, history, token) => engine.Translate(source, request.From, request.To, request.Style, token, context, terms, history), linked.Token);
         } finally { engineGate.Release(); }
     }
 
@@ -222,7 +236,7 @@ public sealed partial class MainWindow : Window
 
     void SetBusy(bool busy)
     {
-        foreach (var element in new Control[] { FromLanguage, ToLanguage, TranslationStyle, SwapButton, PasteButton, ClearButton, HistoryButton, ModelsButton, SettingsButton, InsertButton }) element.IsEnabled = !busy;
+        foreach (var element in new Control[] { FromLanguage, ToLanguage, TranslationStyle, SwapButton, PasteButton, ClearButton, HistoryButton, ModelsButton, SettingsButton, InsertButton, GlossariesButton, GlossaryChoice, DocumentFormat, UseContext }) element.IsEnabled = !busy;
         InputText.IsReadOnly = busy;
         TranslateLabel.Text = busy ? "キャンセル" : "翻訳する";
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(TranslateButton, TranslateLabel.Text);
@@ -242,7 +256,9 @@ public sealed partial class MainWindow : Window
             await engineGate.WaitAsync(job.Token); acquired = true;
             await engine.Load(Path.Combine(prefs.Folder, model.file), prefs.ExecutionDevice, new Progress<string>(s => StatusText.Text = s), job.Token);
             StatusText.Text = $"{model.id.ToUpperInvariant()} · {engine.Device} · 翻訳中…";
-            OutputText.Text = await engine.Translate(source, Language(FromLanguage), Language(ToLanguage), prefs.Style, job.Token);
+            var request = new TranslationRequest(source, Language(FromLanguage), Language(ToLanguage), prefs.Style, prefs.GlossaryId, ContextText.Text, prefs.DocumentFormat, prefs.UseContext);
+            var terms = GetTerms(request.GlossaryId);
+            OutputText.Text = await DocumentTranslation.Translate(request, (text, context, history, token) => engine.Translate(text, request.From, request.To, request.Style, token, context, terms, history), job.Token);
             var inferred = Language(FromLanguage) != "" ? Language(FromLanguage) : LanguageDetection.Guess(source);
             var detected = Language(FromLanguage) == "" ? Lang.List.FirstOrDefault(x => x.Id == inferred)?.Name : null;
             StatusText.Text = $"翻訳完了 · {engine.Device}" + (detected == null ? "" : $" · 原文の推定：{detected}");
@@ -256,6 +272,41 @@ public sealed partial class MainWindow : Window
     {
         Directory.CreateDirectory(Preferences.Home);
         File.WriteAllText(LogPath + ".tmp", JsonSerializer.Serialize(entries)); File.Move(LogPath + ".tmp", LogPath, true);
+    }
+
+    IReadOnlyList<GlossaryTerm> GetTerms(string id) => id == "" ? [] : glossaries?.Resolve(id) ?? throw new IOException(glossaryError);
+    void RefreshGlossaries()
+    {
+        var selected = prefs.GlossaryId;
+        syncingOptions = true;
+        var choices = new[] { new GlossaryOption("", "用語集なし") }.Concat(glossaries?.Items.Select(g => new GlossaryOption(g.Id, g.ToString())) ?? []).ToArray();
+        GlossaryChoice.ItemsSource = choices;
+        GlossaryChoice.SelectedItem = choices.FirstOrDefault(g => g.Id == selected) ?? choices[0];
+        prefs.GlossaryId = ((GlossaryOption)GlossaryChoice.SelectedItem).Id;
+        syncingOptions = false;
+        if (initialized) Options_Changed(GlossaryChoice, null!);
+    }
+    void Options_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (!initialized || syncingOptions || job != null) return;
+        prefs.GlossaryId = (GlossaryChoice.SelectedItem as GlossaryOption)?.Id ?? "";
+        prefs.DocumentFormat = Formats[Math.Max(0, DocumentFormat.SelectedIndex)]; prefs.Save(); OutputText.Text = "";
+    }
+    void Context_Changed(object sender, RoutedEventArgs e)
+    {
+        if (!initialized || job != null) return;
+        prefs.UseContext = UseContext.IsChecked == true; prefs.Save(); OutputText.Text = "";
+    }
+    async void Glossaries_Click(object sender, RoutedEventArgs e)
+    {
+        if (modal || job != null || quitting) return;
+        if (glossaries == null) { StatusText.Text = "用語集を開けません。 " + glossaryError; return; }
+        modal = true;
+        try {
+            var manager = new GlossariesDialog(glossaries) { XamlRoot = Root.XamlRoot, RequestedTheme = Root.RequestedTheme };
+            dialog = manager; await manager.ShowAsync();
+        } catch (Exception ex) { StatusText.Text = ex.Message; }
+        finally { dialog = null; modal = false; RefreshGlossaries(); }
     }
 
     async void History_Click(object sender, RoutedEventArgs e)

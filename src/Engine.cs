@@ -92,12 +92,9 @@ sealed class Engine : IDisposable
             catch{Dispose();throw;}
         }
     }
-    public async Task<string> Translate(string source,string from,string to,string style,CancellationToken ct)
+    public async Task<string> Translate(string source,string from,string to,string style,CancellationToken ct, string context = "", IReadOnlyList<GlossaryTerm>? glossary = null, IReadOnlyList<TranslationPair>? history = null)
     {
-        if(source.Contains("<|plamo:",StringComparison.Ordinal)) throw new ArgumentException("モデルの制御記号を含む文章は翻訳できません。");
-        string Attr(string name,string value)=>value=="" ? "" : $"<|plamo:key|>{name}<|plamo:val|>{value}";
-        var prompt="<|plamo:tag|>dataset<|plamo:msg|>translation<|plamo:tag|>input"+Attr("lang",from)+"<|plamo:msg|>"+source+
-            "<|plamo:tag|>output"+Attr("lang",to)+Attr("form",to=="ja"?style:"")+"<|plamo:msg|>";
+        var prompt = TranslationPrompt.Build(source, from, to, style, context, glossary, history);
         using var response=await client!.PostAsJsonAsync("/completion",new {prompt,temperature=0,n_predict=4096,stop=new[]{"<|plamo:tag|>","<|plamo:bos|>"}},ct);
         if(!response.IsSuccessStatusCode) throw new IOException($"翻訳できませんでした（{(int)response.StatusCode}）。文章を短くして再試行してください。");
         using var doc=JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));

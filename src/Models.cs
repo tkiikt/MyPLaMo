@@ -76,6 +76,9 @@ sealed class Preferences
     public string Target {get;set;} = "ja";
     public string Source {get;set;} = "";
     public string Style {get;set;} = "";
+    public string GlossaryId {get;set;} = "";
+    public string DocumentFormat {get;set;} = "auto";
+    public bool UseContext {get;set;} = true;
     public bool ChromeEnabled {get;set;}
     public bool GPU {get;set;} = true;
     public string ComputeDevice {get;set;} = "auto";
