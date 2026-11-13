@@ -17,3 +17,6 @@ node_modules/
 # Local Stitch design data must never be published.
 /.stitch/
 /.stich/
+
+# Internal verification notes stay local.
+/docs/
