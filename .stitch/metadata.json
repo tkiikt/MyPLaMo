@@ -1,0 +1,8 @@
+{
+  "projectId": "9070954988566557537",
+  "projectUrl": "https://stitch.withgoogle.com/projects/9070954988566557537",
+  "screenId": "bfddb9fec8484dec995f62f3da785ad5",
+  "designSystem": "assets/7064065026620985160",
+  "implementation": "chrome/extension/popup.html",
+  "notes": "Adapted to native Chrome controls, existing settings and MV3 CSP; external scripts/fonts removed."
+}
