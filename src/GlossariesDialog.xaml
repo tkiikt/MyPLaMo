@@ -4,7 +4,26 @@
     Title="用語集" CloseButtonText="閉じる">
     <Grid x:Name="EditorRoot" MinWidth="640" RowSpacing="14">
         <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-        <TextBlock Text="用途ごとに用語集を作成できます。変更は各「保存」でこのPCに保存され、Chrome拡張からも選べます。" TextWrapping="Wrap" />
+        <Grid ColumnSpacing="8">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <TextBlock Text="変更は各「保存」で保存されます。保存済みの全用語集をファイルにバックアップできます。" TextWrapping="Wrap" VerticalAlignment="Center" />
+            <Button x:Name="BackupButton" Grid.Column="1" Content="バックアップ" AutomationProperties.AutomationId="BackupGlossaries" Click="Backup_Click" VerticalAlignment="Center" ToolTipService.ToolTip="保存済みのすべての用語集を専用ファイルに保存します。" />
+            <Button x:Name="RestoreButton" Grid.Column="2" Content="復元" AutomationProperties.AutomationId="RestoreGlossaries" Click="Restore_Click" VerticalAlignment="Center">
+                <FlyoutBase.AttachedFlyout>
+                    <Flyout x:Name="RestoreFlyout">
+                        <StackPanel Spacing="12" MaxWidth="360">
+                            <TextBlock Text="用語集を復元" Style="{StaticResource SubtitleTextBlockStyle}" />
+                            <TextBlock x:Name="RestoreSummary" AutomationProperties.AutomationId="RestoreSummary" TextWrapping="Wrap" />
+                            <TextBlock Text="現在の用語集は残ります。同じ名前でも内容が異なる場合は、別の用語集として追加します。" TextWrapping="Wrap" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button x:Name="ConfirmRestore" Content="追加して復元" AutomationProperties.AutomationId="ConfirmRestoreGlossaries" Click="ConfirmRestore_Click" Style="{StaticResource AccentButtonStyle}" />
+                                <Button Content="キャンセル" AutomationProperties.AutomationId="CancelRestoreGlossaries" Click="CancelRestore_Click" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Flyout>
+                </FlyoutBase.AttachedFlyout>
+            </Button>
+        </Grid>
         <Grid Grid.Row="1" ColumnSpacing="8">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <ComboBox x:Name="Books" Header="用語集" AutomationProperties.AutomationId="GlossaryBooks" HorizontalAlignment="Stretch" SelectionChanged="Book_Changed" />

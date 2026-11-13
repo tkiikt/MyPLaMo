@@ -303,7 +303,7 @@ public sealed partial class MainWindow : Window
         if (glossaries == null) { StatusText.Text = "用語集を開けません。 " + glossaryError; return; }
         modal = true;
         try {
-            var manager = new GlossariesDialog(glossaries) { XamlRoot = Root.XamlRoot, RequestedTheme = Root.RequestedTheme };
+            var manager = new GlossariesDialog(glossaries, this) { XamlRoot = Root.XamlRoot, RequestedTheme = Root.RequestedTheme };
             dialog = manager; await manager.ShowAsync();
         } catch (Exception ex) { StatusText.Text = ex.Message; }
         finally { dialog = null; modal = false; RefreshGlossaries(); }
