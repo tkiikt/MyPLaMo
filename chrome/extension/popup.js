@@ -49,6 +49,7 @@
   for (const button of document.querySelectorAll('[data-panel]')) button.onclick = () => {
     for (const b of document.querySelectorAll('[data-panel]')) { if (b === button) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); }
     for (const section of document.querySelectorAll('main>section')) section.hidden = section.id !== button.dataset.panel;
+    document.querySelector('main').scrollTop = 0;
     if (button.dataset.panel === 'cache') loadCache().catch(e => say(e.message));
   };
   for (const input of document.querySelectorAll('[data-setting]')) input.onchange = () => { settings[input.dataset.setting] = input.type === 'checkbox' ? input.checked : input.value; save(); };
@@ -66,6 +67,8 @@
   async function initialize() {
     const state = await send({kind:'state'}); settings = S.normalize(state.settings); tab = state.tab;
     $('current-page').textContent = tab?.title || tab?.url || 'Webページを開いてください';
+    $('current-page').title = tab?.url || '';
+    $('connection').classList.toggle('connected',!!(state.info?.server || state.info?.legacy));
     $('connection').textContent = state.info?.server ? `v${state.info.server.appVersion} に接続中` : state.info?.legacy ? '旧版の本体に接続中' : '本体に未接続';
     const supported = /^https?:\/\//.test(tab?.url || ''); $('translate').disabled = $('restore').disabled = !supported;
     let languages = state.info?.languages;
