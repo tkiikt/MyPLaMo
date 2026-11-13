@@ -69,6 +69,63 @@ try {
     Check(reloaded.Resolve(book.Id).Single().Target == "銀行" && reloaded.Revision == store.Revision,"glossary atomic persistence and revision");
     book.Terms.Add(terms[0]); await Reject(() => Task.Run(store.Save),"duplicate glossary source rejected"); book.Terms.RemoveAt(1);
     await Reject(() => Task.FromResult(store.Resolve("missing")),"missing glossary is explicit error");
+    var backupPath = Path.Combine(directory, "terms" + GlossaryBackup.Extension);
+    var special = new Glossary { Name = "日本語・空の用語集" };
+    book.Terms.Add(new("引用,\"と改行\n🌸", "line\nカンマ,\"", "ja", "en"));
+    store.Items.Add(special); store.Save();
+    var beforeBackup = File.ReadAllBytes(Path.Combine(directory, "glossaries.json"));
+    GlossaryBackup.Write(backupPath, store.Items);
+    var savedBackup = File.ReadAllBytes(backupPath);
+    var restoredBooks = GlossaryBackup.Read(backupPath);
+    Check(JsonSerializer.Serialize(restoredBooks) == JsonSerializer.Serialize(store.Items), "backup roundtrip preserves names, IDs, order, empty books, Unicode, punctuation and directions");
+    Check(beforeBackup.SequenceEqual(File.ReadAllBytes(Path.Combine(directory, "glossaries.json"))), "backup never changes original store");
+    var fresh = new GlossaryStore(Path.Combine(directory, "fresh"));
+    var plan = fresh.PlanRestore(restoredBooks); fresh.Restore(plan);
+    Check(new GlossaryStore(Path.Combine(directory, "fresh")).Resolve(book.Id).SequenceEqual(book.Terms), "restore to fresh profile persists exact terms and IDs");
+    Check(fresh.PlanRestore(restoredBooks).Additions.Count == 0, "repeated restore skips identical books");
+    var twins = new GlossaryStore(Path.Combine(directory, "twins"));
+    var twinBooks = new List<Glossary> { new() { Name = "同名" }, new() { Name = "同名" } };
+    twins.Restore(twins.PlanRestore(twinBooks));
+    Check(twins.Items.Count == 2 && twins.Items.Select(g => g.Id).SequenceEqual(twinBooks.Select(g => g.Id)), "fresh restore retains distinct books with identical names and contents in backup");
+    twins.Items.RemoveAt(1); twins.Save();
+    var twinPlan = twins.PlanRestore(twinBooks);
+    Check(twinPlan.Additions.Count == 1 && twinPlan.Skipped == 1, "identical books are matched one-to-one with existing copies");
+    fresh.Items[0].Terms[0] = new("bank", "バンク"); fresh.Save();
+    plan = fresh.PlanRestore(restoredBooks);
+    Check(plan.Additions.Count == 1 && plan.Skipped == 1 && plan.Additions[0].Id != book.Id, "changed ID collision gets new ID, empty identical book skipped");
+    fresh.Restore(plan);
+    Check(fresh.Items.Count == 3 && fresh.Resolve(book.Id)[0].Target == "バンク" && fresh.Items.Last().Terms[0].Target == "銀行", "restore retains edited original and adds backup version");
+    Check(fresh.PlanRestore(restoredBooks).Additions.Count == 0, "restored collision copy also deduplicates on repeat");
+    var snapshot = JsonSerializer.Serialize(fresh.Items); var revision = fresh.Revision;
+    var blockedPath = Path.Combine(directory, "fresh", "glossaries.json.tmp"); Directory.CreateDirectory(blockedPath);
+    await Reject(() => Task.Run(() => fresh.Restore(new([new Glossary { Name = "追加" }], 0))), "restore disk failure reported");
+    Check(JsonSerializer.Serialize(fresh.Items) == snapshot && fresh.Revision == revision && JsonSerializer.Serialize(new GlossaryStore(Path.Combine(directory, "fresh")).Items) == snapshot, "failed restore rolls back memory and leaves disk and revision intact");
+    var full = new GlossaryStore(Path.Combine(directory, "full")); full.Items.AddRange(Enumerable.Range(0,100).Select(i => new Glossary {Name="Book " + i})); full.Save();
+    await Reject(() => Task.FromResult(full.PlanRestore(restoredBooks)), "restore over total book limit rejected before mutation");
+    Check(full.Items.Count == 100, "over-limit restore leaves existing books intact");
+    File.WriteAllBytes(backupPath, savedBackup[..20]);
+    await Reject(() => Task.FromResult(GlossaryBackup.Read(backupPath)), "truncated backup rejected");
+    var corrupt = savedBackup.ToArray(); corrupt[16] ^= 1; File.WriteAllBytes(backupPath, corrupt);
+    await Reject(() => Task.FromResult(GlossaryBackup.Read(backupPath)), "backup checksum mismatch rejected");
+    File.WriteAllText(backupPath, "not a glossary backup");
+    await Reject(() => Task.FromResult(GlossaryBackup.Read(backupPath)), "wrong file format rejected");
+    void WriteBackupJson(string json) {
+        var bytes = Encoding.UTF8.GetBytes(json);
+        using var file = File.Create(backupPath); file.Write("MyPLaMoGlossary\n"u8); file.Write(System.Security.Cryptography.SHA256.HashData(bytes));
+        using var gzip = new System.IO.Compression.GZipStream(file, System.IO.Compression.CompressionLevel.Optimal); gzip.Write(bytes);
+    }
+    foreach (var invalid in new[] {
+        "{\"Version\":2,\"Glossaries\":[]}", "{\"Version\":1,\"Glossaries\":null}",
+        "{\"Version\":1,\"Glossaries\":[null]}", "{\"Version\":1,\"Glossaries\":[{\"Name\":null}]}",
+        "{\"Version\":1,\"Glossaries\":[{\"Terms\":[{\"Source\":\"cat\",\"Target\":\"猫\",\"From\":\"xx\",\"To\":\"ja\"}]}]}"
+    }) { WriteBackupJson(invalid); await Reject(() => Task.FromResult(GlossaryBackup.Read(backupPath)), "invalid version or glossary payload rejected: " + invalid); }
+    File.WriteAllBytes(backupPath, savedBackup);
+    GlossaryBackup.Write(backupPath, [special]);
+    Check(GlossaryBackup.Read(backupPath).Single().Name == special.Name && Directory.GetFiles(directory, "terms*.tmp").Length == 0, "existing backup replaced with complete file and temporary file cleaned");
+    var invalidBook = new Glossary { Name = "" };
+    var prior = File.ReadAllBytes(backupPath);
+    await Reject(() => Task.Run(() => GlossaryBackup.Write(backupPath, [invalidBook])), "invalid backup write rejected");
+    Check(prior.SequenceEqual(File.ReadAllBytes(backupPath)), "failed backup preserves previous file");
     File.WriteAllText(Path.Combine(directory,"glossaries.json"),"broken"); await Reject(() => Task.FromResult(new GlossaryStore(directory)),"corrupt glossary not overwritten");
     Check(File.ReadAllText(Path.Combine(directory,"glossaries.json")) == "broken","corrupt glossary file retained");
 } finally { if (Directory.Exists(directory)) Directory.Delete(directory,true); }
