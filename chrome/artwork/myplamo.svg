@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <title>MyPLaMo</title>
+  <!-- Fill the toolbar icon cell; enlarge the original speech-bubble artwork. -->
+  <rect x="1" y="1" width="254" height="254" rx="54" fill="#10635f"/>
+  <g transform="translate(128 128) scale(1.18) translate(-128 -128)">
+    <rect x="91" y="100" width="122" height="83" rx="19" fill="#a4ddd0"/>
+    <path d="M174 170 198 204 198 170Z" fill="#a4ddd0"/>
+    <rect x="40" y="53" width="131" height="96" rx="20" fill="#fafffd" stroke="#10635f" stroke-width="6"/>
+    <path d="M59 137 59 166 88 138Z" fill="#fafffd"/>
+    <rect x="69" y="86" width="69" height="7" rx="3.5" fill="#10635f"/>
+    <rect x="69" y="107" width="47" height="7" rx="3.5" fill="#10635f"/>
+  </g>
+</svg>

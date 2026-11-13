@@ -74,7 +74,10 @@ Ryzen 9 9950X、GeForce RTX 5090、9950X内蔵のAMD Radeon Graphicsを使い、
 
 ## Chrome拡張でWebページを日本語に翻訳する
 
-Chrome拡張「MyPLaMo ページ翻訳」は、本体で選んだモデルを使い、ページの文章をPC内で翻訳します。拡張2.3.3の言語・文体・用語集・文脈の設定にはMyPLaMo 1.4.0以降が必要です。旧本体や旧Mac版では基本の日本語翻訳を利用でき、対応していない設定は更新の案内を表示します。
+拡張2.3.6では、白ベースの設定メニューを刷新し、本文・操作項目の文字とツールバーのアイコンを見やすくしました。
+
+
+Chrome拡張「MyPLaMo ページ翻訳」は、本体で選んだモデルを使い、ページの文章をPC内で翻訳します。拡張2.3.6の言語・文体・用語集・文脈の設定にはMyPLaMo 1.4.0以降が必要です。旧本体や旧Mac版では基本の日本語翻訳を利用でき、対応していない設定は更新の案内を表示します。
 
 **ダウンロード**　[MyPLaMo-Web.zip](https://github.com/tkiikt/MyPLaMo/releases/latest/download/MyPLaMo-Web.zip)
 
