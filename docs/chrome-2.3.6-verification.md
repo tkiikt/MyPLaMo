@@ -16,7 +16,8 @@ Validation on Windows with installed Google Chrome:
 
 The menu ships only bundled styles, images and SVGs. It does not load the remote
 scripts or fonts used by the Stitch design reference. Icon vector source is in
-`chrome/artwork/myplamo.svg`; design provenance is in `.stitch/`.
+`chrome/artwork/myplamo.svg`. Stitch project metadata and design working files
+are kept locally and excluded from Git.
 
 The native Windows and Mac app source and binaries are unchanged by this update.
 Mac-native UI and inference were not rerun on this Windows host. Shared extension

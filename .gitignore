@@ -13,3 +13,7 @@ __pycache__/
 
 /dist/
 node_modules/
+
+# Local Stitch design data must never be published.
+/.stitch/
+/.stich/
